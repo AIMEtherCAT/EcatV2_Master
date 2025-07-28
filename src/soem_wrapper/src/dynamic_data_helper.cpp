@@ -1,41 +1,9 @@
 // ReSharper disable CppCStyleCast
 #include "soem_wrapper/dynamic_data_helper.hpp"
 
-#include <yaml-cpp/yaml.h>
-#include <sstream>
-#include <type_traits>
-
 extern rclcpp::Logger data_logger;
 
 DynamicStruct sdo_data = {};
-// = {
-//     {"sn2228293_sdo_len", (uint16_t) 29},
-//     {"sn2228293_task_count", (uint8_t) 3},
-//     {"sn2228293_latency_pub_topic", std::string("/ecat/sn2228293/latency")},
-//
-//     {"sn2228293_app_1_sdowrite_task_type", (uint8_t)HIPNUC_IMU_CAN_APP_ID},
-//     {"sn2228293_app_1_pub_topic", std::string("/imu")},
-//     {"sn2228293_app_1_pdoread_offset", (uint16_t) 0},
-//
-//     {"sn2228293_app_2_sdowrite_task_type", (uint8_t) DJICAN_APP_ID},
-//     {"sn2228293_app_2_sdowrite_control_period", (uint16_t) 1},
-//     {"sn2228293_app_2_sdowrite_can_packet_id", (uint32_t) 0x1fe},
-//     {"sn2228293_app_2_sdowrite_motor1_can_id", (uint32_t) 0x205},
-//     {"sn2228293_app_2_sdowrite_motor2_can_id", (uint32_t) 0x206},
-//     {"sn2228293_app_2_sdowrite_motor3_can_id", (uint32_t) 0},
-//     {"sn2228293_app_2_sdowrite_motor4_can_id", (uint32_t) 0},
-//     {"sn2228293_app_2_sdowrite_can_inst", (uint8_t) CAN_PORT_1},
-//     {"sn2228293_app_2_sdowrite_motor1_control_type", (uint8_t) DJIMOTOR_CTRL_TYPE_CURRENT},
-//     {"sn2228293_app_2_sdowrite_motor2_control_type", (uint8_t) DJIMOTOR_CTRL_TYPE_CURRENT},
-//     {"sn2228293_app_2_pub_topic", std::string("/motor_status")},
-//     {"sn2228293_app_2_sub_topic", std::string("/motor_out")},
-//     {"sn2228293_app_2_pdowrite_offset", (uint16_t) 0},
-//     {"sn2228293_app_2_pdoread_offset", (uint16_t) 21},
-//
-//     {"sn2228293_app_3_sdowrite_task_type", (uint8_t)DJIRC_APP_ID},
-//     {"sn2228293_app_3_pub_topic", std::string("/rc")},
-//     {"sn2228293_app_3_pdoread_offset", (uint16_t) 35},
-// };
 
 void DynamicStruct::parse_map(const std::string& path, const YAML::Node& node)
 {
