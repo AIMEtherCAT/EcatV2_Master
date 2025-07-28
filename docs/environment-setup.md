@@ -82,4 +82,4 @@ If this project updates in the future, use the command ``git submodule update --
 
 ### Done
 
-After finishing these steps, your system is now available to run the SOEM application. Please then refer to the next tutorial about how to use our soem_wrapper application.
+After finishing these steps, your system is now available to run the SOEM application. Please then refer to the next tutorial about how to run your first test.
