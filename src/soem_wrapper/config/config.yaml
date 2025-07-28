@@ -1,0 +1,54 @@
+#define UNKNOWN_APP_ID 999
+#define DJIRC_APP_ID 1
+#define LK_APP_ID 2
+#define HIPNUC_IMU_CAN_APP_ID 3
+#define DSHOT_APP_ID 4
+#define DJICAN_APP_ID 5
+#define VANILLA_PWM_APP_ID 6
+#define EXTERNAL_PWM_APP_ID 7
+#define MS5876_30BA_APP_ID 8
+#define ADC_APP_ID 9
+#define CAN_PMU_APP_ID 10
+
+#define CAN_PORT_1 1
+#define CAN_PORT_2 2
+
+#define TIM_2 2
+#define TIM_3 3
+
+#define USART1 1
+#define UART4 4
+#define UART8 8
+
+#define I2C3 3
+
+slaves:
+  - sn2228293:
+      sdo_len: !uint16_t 29
+      task_count: !uint8_t 3
+      latency_pub_topic: !std::string '/ecat/sn2228293/latency'
+
+      tasks:
+        - app_1:
+            sdowrite_task_type: !uint8_t 3
+            pub_topic: !std::string '/imu'
+            pdoread_offset: !uint16_t 0
+        - app_2:
+            sdowrite_task_type: !uint8_t 5
+            sdowrite_control_period: !uint16_t 1
+            sdowrite_can_packet_id: !uint32_t 0x1fe
+            sdowrite_motor1_can_id: !uint32_t 0x205
+            sdowrite_motor2_can_id: !uint32_t 0x206
+            sdowrite_motor3_can_id: !uint32_t 0
+            sdowrite_motor4_can_id: !uint32_t 0
+            sdowrite_can_inst: !uint8_t 1
+            sdowrite_motor1_control_type: !uint8_t 0x01
+            sdowrite_motor2_control_type: !uint8_t 0x01
+            pub_topic: !std::string '/motor_status'
+            sub_topic: !std::string '/motor_out'
+            pdowrite_offset: !uint16_t 0
+            pdoread_offset: !uint16_t 21
+        - app_3:
+            sdowrite_task_type: !uint8_t 1
+            pub_topic: !std::string '/rc'
+            pdoread_offset: !uint16_t 35
