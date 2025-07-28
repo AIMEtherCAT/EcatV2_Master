@@ -28,7 +28,7 @@ When you finish the system installation, enable the **Ubuntu Pro**. It can be en
 
 After attaching to the Ubuntu Pro, open the terminal.
 
-If you are using Intel **12th** Gen CPU, use the command ``sudo pro enable realtime-kernel-- variant=intel-iotg`` in the terminal to enable the realtime-kernel patch, which is optimised for this generation of CPU.
+If you are using Intel **12th** Gen CPU, use the command ``sudo pro enable realtime-kernel --variant=intel-iotg`` in the terminal to enable the realtime-kernel patch, which is optimised for this generation of CPU.
 
 If not, use the command ``sudo pro enable realtime-kernel`` to enable the generic realtime-kernel patch.
 
