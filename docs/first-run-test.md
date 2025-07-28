@@ -141,7 +141,7 @@ Run ``colcon build`` command to update your config file.
 
 ### Done
 
-After finishing all steps above, run the command ``ros2 launch soem_bringup bringup.launch.py`` , the soem_wrapper node should now be running correctly. The output will be like this, especially contained line ``[soem_backend-1] [INFO] [1753707019.749195776] [EthercatNode_DATA]: slave id 1 confirmed read``
+After finishing all steps above, run the command ``ros2 launch soem_bringup bringup.launch.py`` , the soem_wrapper node should now be running correctly. The output will be like this, especially contained line ``[soem_backend-1] [INFO] [1753707019.749195776] [EthercatNode_DATA]: slave id 1 confirmed ready``
 
 ```bash
 $ ros2 launch stewart_bringup bringup.launch.py 
@@ -222,7 +222,7 @@ $ ros2 launch stewart_bringup bringup.launch.py
 [soem_backend-1] [INFO] [1753707019.745547957] [EthercatNode_DATA]: slave id 1 sdo all sent
 [soem_backend-1] [WARN] [1753707019.745624870] [EthercatNode_WRAPPER]: App name=HIPNUC_IMU don't have init_value method but got called
 [soem_backend-1] [INFO] [1753707019.745653656] [EthercatNode_DATA]: slave id 1 sdo confirmed received
-[soem_backend-1] [INFO] [1753707019.749195776] [EthercatNode_DATA]: slave id 1 confirmed read
+[soem_backend-1] [INFO] [1753707019.749195776] [EthercatNode_DATA]: slave id 1 confirmed ready
 ```
 
 After finishing these steps, you may confirm that your system and slave module are working correctly. Please then refer to the next tutorial about how to use our soem_wrapper application.
