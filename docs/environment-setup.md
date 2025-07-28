@@ -78,6 +78,8 @@ After that, enter your workspace folder and create a ``src`` folder.
 
 Run the command ``git submodule add git@github.com:AIMEtherCAT/EcatV2_Master.git src/EcatV2_Master`` to add some_wrapper to your project.
 
+If this project updates in the future, use the command ``git submodule update --recursive --remote`` to update code for some_wrapper.
+
 ### Done
 
 After finishing these steps, your system is now available to run the SOEM application. Please then refer to the next tutorial about how to use our soem_wrapper application.
