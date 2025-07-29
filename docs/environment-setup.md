@@ -28,7 +28,7 @@ When you finish the system installation, enable the **Ubuntu Pro**. It can be en
 
 After attaching to the Ubuntu Pro, open the terminal.
 
-If you are using Intel **12th** Gen CPU, use the command ``sudo pro enable realtime-kernel --variant=intel-iotg`` in the terminal to enable the realtime-kernel patch, which is optimised for this generation of CPU.
+If you are using Intel **12th** Gen CPU, use the command ``sudo pro enable realtime-kernel --variant=intel-iotg`` in the terminal to enable the realtime-kernel patch, which is specially optimised for this generation of CPU.
 
 If not, use the command ``sudo pro enable realtime-kernel`` to enable the generic realtime-kernel patch.
 
@@ -44,7 +44,9 @@ For CPUs without a distinction between performance and efficiency cores, you can
 
 For Hybrid Architecture CPUs (with both performance and efficiency cores), it's recommended to use the efficiency cores if their base frequency exceeds 2 GHz; otherwise, the performance cores are preferred.
 
-Please note that CPU numbering **starts from 0**, and typically the performance cores come first, followed by the efficiency cores.
+> **Note1.** For CPUs **with hyper-threading function** but **cannot be disabled in the BIOS**, you should isolate **entire** physical cores. This means, for example, if your CPU has 2 cores and 4 threads, then **CPU0 & CPU1 belong to core 0**, and CPU2 & CPU3 belong to core 1. Since a full core needs to be isolated, you must at least isolate **CPU0 and CPU1** in this case. You can then choose either **one** of them **for later use** as needed.
+
+> **Note2.** Please note that CPU numbering **starts from 0**, and typically the performance cores come first, followed by the efficiency cores.
 
 After selecting a core number (Let's refer to it as **X**), we can know the ID of other core numbers (Let's refer to it as **Y**). 
 
