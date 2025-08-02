@@ -12,6 +12,7 @@
 #define MS5876_30BA_APP_ID 8
 #define ADC_APP_ID 9
 #define CAN_PMU_APP_ID 10
+#define SBUS_RC_APP_ID 11
 
 #define CAN_PORT_1 1
 #define CAN_PORT_2 2
@@ -44,7 +45,8 @@
 #define MS5876_30BA_OSR_4096 0x05
 #define MS5876_30BA_OSR_8192 0x06
 
-typedef struct {
+typedef struct
+{
     uint16_t w : 1;
     uint16_t s : 1;
     uint16_t a : 1;
@@ -63,7 +65,8 @@ typedef struct {
     uint16_t b : 1;
 } Key_t;
 
-typedef struct {
+typedef struct
+{
     uint16_t channel[5];
     uint8_t switcher[2];
 

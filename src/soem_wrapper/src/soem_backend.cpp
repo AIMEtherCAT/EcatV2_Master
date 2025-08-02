@@ -27,6 +27,7 @@ custom_msgs::msg::ReadLkMotor custom_msgs_readlkmotor_shared_msg;
 custom_msgs::msg::ReadMS5876BA30 custom_msgs_readms5876ba30_shared_msg;
 custom_msgs::msg::ReadADC custom_msgs_readadc_shared_msg;
 custom_msgs::msg::ReadCANPMU custom_msgs_readcanpmu_shared_msg;
+custom_msgs::msg::ReadSBUSRC custom_msgs_readsbusrc_shared_msg;
 
 void EthercatNode::datacycle_callback() {
     // set soem_wrapper cpu affinity
@@ -403,6 +404,7 @@ void EthercatNode::register_components() {
     register_app<LK_MOTOR>();
     register_app<ADC>();
     register_app<CAN_PMU>();
+    register_app<SBUSRC>();
 }
 
 int main(const int argc, const char* argv[]) {
