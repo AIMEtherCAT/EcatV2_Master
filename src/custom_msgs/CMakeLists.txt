@@ -38,6 +38,11 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
     "msg/ReadCANPMU.msg"
 
+    "msg/ReadDmMotor.msg"
+    "msg/WriteDmMotorMITControl.msg"
+    "msg/WriteDmMotorPositionControlWithSpeedLimit.msg"
+    "msg/WriteDmMotorSpeedControl.msg"
+
     DEPENDENCIES
     std_msgs
     geometry_msgs

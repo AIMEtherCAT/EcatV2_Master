@@ -9,6 +9,21 @@
 #include "cstring"
 #include "cmath"
 
+inline int float_to_uint(const float x_float, const float x_min, const float x_max, const int bits)
+{
+    const float span = x_max - x_min;
+    const float offset = x_min;
+    return static_cast<int>((x_float - offset) * static_cast<float>((1 << bits) - 1) / span);
+}
+
+
+inline float uint_to_float(const int x_int, const float x_min, const float x_max, const int bits)
+{
+    const float span = x_max - x_min;
+    const float offset = x_min;
+    return static_cast<float>(x_int) * span / static_cast<float>((1 << bits) - 1) + offset;
+}
+
 inline float get_percentage(const uint16_t raw_data)
 {
     const float target_spd = static_cast<float>(raw_data - 1024);

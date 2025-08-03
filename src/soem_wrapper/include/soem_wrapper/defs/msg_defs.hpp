@@ -189,4 +189,80 @@ struct MsgDef<custom_msgs::msg::WriteExternalPWM>
     }
 };
 
+template <>
+struct MsgDef<custom_msgs::msg::WriteDmMotorMITControl>
+{
+    static constexpr auto type_enum = "WriteDmMotorMITControl";
+
+    static void
+    write(const custom_msgs::msg::WriteDmMotorMITControl::SharedPtr& msg, uint8_t* buf, int* offset,
+          const std::string& prefix)
+    {
+        write_uint8(msg->enable, buf, offset);
+        static uint8_t WriteDmMotorMITControl_data[8] = {};
+
+        static uint16_t WriteDmMotorMITControl_pos = float_to_uint(msg->p_des,
+                                                                   -get_field_as<float>(
+                                                                       fmt::format("{}sdowrite_pmax", prefix)),
+                                                                   get_field_as<float>(
+                                                                       fmt::format("{}sdowrite_pmax", prefix)),
+                                                                   16);
+        static uint16_t WriteDmMotorMITControl_vel = float_to_uint(msg->v_des,
+                                                                   -get_field_as<float>(
+                                                                       fmt::format("{}sdowrite_vmax", prefix)),
+                                                                   get_field_as<float>(
+                                                                       fmt::format("{}sdowrite_vmax", prefix)),
+                                                                   12);
+        static uint16_t WriteDmMotorMITControl_tor = float_to_uint(msg->torque,
+                                                                   -get_field_as<float>(
+                                                                       fmt::format("{}sdowrite_tmax", prefix)),
+                                                                   get_field_as<float>(
+                                                                       fmt::format("{}sdowrite_tmax", prefix)),
+                                                                   12);
+        static uint16_t WriteDmMotorMITControl_kp = float_to_uint(msg->kp, 0.0, 500.0, 12);
+        static uint16_t WriteDmMotorMITControl_kd = float_to_uint(msg->kd, 0.0, 5.0, 12);
+
+        WriteDmMotorMITControl_data[0] = (WriteDmMotorMITControl_pos >> 8);
+        WriteDmMotorMITControl_data[1] = WriteDmMotorMITControl_pos;
+        WriteDmMotorMITControl_data[2] = (WriteDmMotorMITControl_vel >> 4);
+        WriteDmMotorMITControl_data[3] = ((WriteDmMotorMITControl_vel & 0xF) << 4) | (WriteDmMotorMITControl_kp >> 8);
+        WriteDmMotorMITControl_data[4] = WriteDmMotorMITControl_kp;
+        WriteDmMotorMITControl_data[5] = (WriteDmMotorMITControl_kd >> 4);
+        WriteDmMotorMITControl_data[6] = ((WriteDmMotorMITControl_kd & 0xF) << 4) | (WriteDmMotorMITControl_tor >> 8);
+        WriteDmMotorMITControl_data[7] = WriteDmMotorMITControl_tor;
+
+        memcpy(buf + *offset, WriteDmMotorMITControl_data, 8);
+        *offset += 8;
+    }
+};
+
+template <>
+struct MsgDef<custom_msgs::msg::WriteDmMotorPositionControlWithSpeedLimit>
+{
+    static constexpr auto type_enum = "WriteDmMotorPositionControlWithSpeedLimit";
+
+    static void
+    write(const custom_msgs::msg::WriteDmMotorPositionControlWithSpeedLimit::SharedPtr& msg, uint8_t* buf, int* offset,
+          const std::string& /*prefix*/)
+    {
+        write_uint8(msg->enable, buf, offset);
+        write_float(msg->position, buf, offset);
+        write_float(msg->speed, buf, offset);
+    }
+};
+
+template <>
+struct MsgDef<custom_msgs::msg::WriteDmMotorSpeedControl>
+{
+    static constexpr auto type_enum = "WriteDmMotorSpeedControl";
+
+    static void
+    write(const custom_msgs::msg::WriteDmMotorSpeedControl::SharedPtr& msg, uint8_t* buf, int* offset,
+          const std::string& /*prefix*/)
+    {
+        write_uint8(msg->enable, buf, offset);
+        write_float(msg->speed, buf, offset);
+    }
+};
+
 #endif //MSG_DEFS_HPP

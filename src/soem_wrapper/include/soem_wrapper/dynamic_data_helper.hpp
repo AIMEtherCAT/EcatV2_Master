@@ -48,6 +48,11 @@
 #include "custom_msgs/msg/read_adc.hpp"
 #include "custom_msgs/msg/read_canpmu.hpp"
 
+#include "custom_msgs/msg/read_dm_motor.hpp"
+#include "custom_msgs/msg/write_dm_motor_mit_control.hpp"
+#include "custom_msgs/msg/write_dm_motor_position_control_with_speed_limit.hpp"
+#include "custom_msgs/msg/write_dm_motor_speed_control.hpp"
+
 using Variant = std::variant<
     uint8_t,
     uint16_t,
@@ -64,6 +69,9 @@ using Variant = std::variant<
     rclcpp::Publisher<custom_msgs::msg::ReadDJICAN>::SharedPtr,
     rclcpp::Publisher<custom_msgs::msg::ReadSBUSRC>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteDSHOT>::SharedPtr,
+    rclcpp::Subscription<custom_msgs::msg::WriteDmMotorMITControl>::SharedPtr,
+    rclcpp::Subscription<custom_msgs::msg::WriteDmMotorPositionControlWithSpeedLimit>::SharedPtr,
+    rclcpp::Subscription<custom_msgs::msg::WriteDmMotorSpeedControl>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteLkMotorOpenloopControl>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteLkMotorSpeedControlWithTorqueLimit>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteLkMotorTorqueControl>::SharedPtr,
@@ -77,6 +85,7 @@ using Variant = std::variant<
     rclcpp::Publisher<custom_msgs::msg::ReadMS5876BA30>::SharedPtr,
     rclcpp::Publisher<custom_msgs::msg::ReadADC>::SharedPtr,
     rclcpp::Publisher<custom_msgs::msg::ReadCANPMU>::SharedPtr,
+    rclcpp::Publisher<custom_msgs::msg::ReadDmMotor>::SharedPtr,
     rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr
 >;
 

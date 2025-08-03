@@ -24,12 +24,22 @@
 
 slaves:
   - sn4587574:
-      sdo_len: !uint16_t 2
+      sdo_len: !uint16_t 10
       task_count: !uint8_t 1
       latency_pub_topic: !std::string '/ecat/sn4587574/latency'
 
       tasks:
         - app_1:
-            sdowrite_task_type: !uint8_t 11
-            pub_topic: !std::string '/rc'
+            sdowrite_task_type: !uint8_t 12
+            sdowrite_control_period: !uint16_t 1
+            sdowrite_can_id: !uint16_t 0x01
+            sdowrite_master_id: !uint16_t 0x00
+            sdowrite_can_inst: !uint8_t 1
+            sdowrite_control_type: !uint8_t 3
+            sdowrite_pmax: !float 12.5
+            sdowrite_vmax: !float 200.0
+            sdowrite_tmax: !float 10.0
+            pub_topic: !std::string '/pub'
+            sub_topic: !std::string 'sub'
             pdoread_offset: !uint16_t 0
+            pdowrite_offset: !uint16_t 0
