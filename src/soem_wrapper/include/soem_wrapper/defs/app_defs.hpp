@@ -248,10 +248,22 @@ struct DSHOT
     {
         memcpy(buf + *offset,
                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
-                                  {"dshot_id"}),
-               1);
-        *offset += 1;
+                                  {"dshot_id", "init_value"}),
+               3);
+        *offset += 3;
         node->create_and_insert_subscriber<custom_msgs::msg::WriteDSHOT>(prefix, slave_id);
+    }
+
+    static void
+    init_value(uint8_t* buf, int* offset, const std::string& prefix)
+    {
+        const uint16_t init_value = get_field_as<uint16_t>(fmt::format("{}sdowrite_init_value", prefix));
+        for (int i = 1; i <= 4; i++)
+        {
+            RCLCPP_INFO(cfg_logger, "prefix=%s will write init value=%d at m2s buf idx=%d", prefix.c_str(), init_value,
+                        *offset);
+            write_uint16(init_value, buf, offset);
+        }
     }
 };
 
