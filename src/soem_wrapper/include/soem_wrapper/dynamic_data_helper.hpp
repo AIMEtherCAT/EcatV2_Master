@@ -11,14 +11,17 @@
 #include <variant>
 #include <string>
 #include <vector>
-#include <chrono>
-#include <functional>
 #include <memory>
 #include "utils.hpp"
 #include "fmt/core.h"
 #include "fmt/format.h"
 
 #include "yaml-cpp/yaml.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include <chrono>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <functional>
 
 // this header files will be used by dynamic_data_helper.cpp main func
 // ReSharper disable once CppUnusedIncludeDirective
@@ -93,41 +96,34 @@ using Variant = std::variant<
 // if so it means it is a publisher/subscriber
 // and it needs to be destroyed before exit
 // ReSharper disable once CppTemplateParameterNeverUsed
-template <typename T>
-struct is_shared_ptr : std::false_type
-{
+template<typename T>
+struct is_shared_ptr : std::false_type {
 };
 
-template <typename U>
-struct is_shared_ptr<std::shared_ptr<U>> : std::true_type
-{
+template<typename U>
+struct is_shared_ptr<std::shared_ptr<U> > : std::true_type {
 };
 
-class DynamicStruct
-{
+class DynamicStruct {
 public:
-    DynamicStruct(std::initializer_list<std::pair<std::string, Variant>> init)
-    {
-        for (const auto& [key, value] : init)
-        {
+    DynamicStruct(std::initializer_list<std::pair<std::string, Variant> > init) {
+        for (const auto &[key, value]: init) {
             fields[key] = value;
         }
         memset(temp_buf, 0, 1024);
     }
 
-    void load_initial_value_from_config(const std::string& filepath);
+    void load_initial_value_from_config(const std::string &filepath);
 
-    void parse_map(const std::string& path, const YAML::Node& node);
+    void parse_map(const std::string &path, const YAML::Node &node);
 
     void
-    set(const std::string& key, Variant value)
-    {
+    set(const std::string &key, Variant value) {
         fields[key] = std::move(value);
     }
 
     Variant
-    get(const std::string& key) const
-    {
+    get(const std::string &key) const {
         if (const auto it = fields.find(key);
             it != fields.end())
             return it->second;
@@ -135,8 +131,7 @@ public:
     }
 
     Variant
-    get(const std::string& key, const int idx) const
-    {
+    get(const std::string &key, const int idx) const {
         if (const auto it = fields.find(key);
             it != fields.end())
             return it->second;
@@ -144,21 +139,16 @@ public:
     }
 
     bool
-    has(const std::string& key) const
-    {
+    has(const std::string &key) const {
         return fields.find(key) != fields.end();
     }
 
     void
-    remove(const std::string& key)
-    {
+    remove(const std::string &key) {
         if (const auto it = fields.find(key);
-            it != fields.end())
-        {
+            it != fields.end()) {
             fields.erase(it);
-        }
-        else
-        {
+        } else {
             throw std::runtime_error("del Key not found: " + key);
         }
     }
@@ -169,45 +159,29 @@ public:
      * @param names names
      * @return buffer with corresponding values
      */
-    uint8_t*
-    build_buf(const std::string& prefix, const std::vector<std::string>& names)
-    {
+    uint8_t *
+    build_buf(const std::string &prefix, const std::vector<std::string> &names) {
         offset = 0;
         memset(temp_buf, 0, sizeof(temp_buf));
 
-        for (const std::string& name : names)
-        {
+        for (const std::string &name: names) {
             std::visit(
-                [&](auto&& arg)
-                {
+                [&](auto &&arg) {
                     using T = std::decay_t<decltype(arg)>;
 
-                    if constexpr (std::is_same_v<T, uint8_t>)
-                    {
+                    if constexpr (std::is_same_v<T, uint8_t>) {
                         write_uint8(arg, temp_buf, &offset);
-                    }
-                    else if constexpr (std::is_same_v<T, int8_t>)
-                    {
+                    } else if constexpr (std::is_same_v<T, int8_t>) {
                         write_int8(arg, temp_buf, &offset);
-                    }
-                    else if constexpr (std::is_same_v<T, uint16_t>)
-                    {
+                    } else if constexpr (std::is_same_v<T, uint16_t>) {
                         write_uint16(arg, temp_buf, &offset);
-                    }
-                    else if constexpr (std::is_same_v<T, int16_t>)
-                    {
+                    } else if constexpr (std::is_same_v<T, int16_t>) {
                         write_int16(arg, temp_buf, &offset);
-                    }
-                    else if constexpr (std::is_same_v<T, uint32_t>)
-                    {
+                    } else if constexpr (std::is_same_v<T, uint32_t>) {
                         write_uint32(arg, temp_buf, &offset);
-                    }
-                    else if constexpr (std::is_same_v<T, int32_t>)
-                    {
+                    } else if constexpr (std::is_same_v<T, int32_t>) {
                         write_int32(arg, temp_buf, &offset);
-                    }
-                    else if constexpr (std::is_same_v<T, float>)
-                    {
+                    } else if constexpr (std::is_same_v<T, float>) {
                         write_float(arg, temp_buf, &offset);
                     }
                 },
@@ -223,23 +197,17 @@ public:
      * before exit
      */
     void
-    reset_and_remove_publishers()
-    {
+    reset_and_remove_publishers() {
         std::vector<std::string> keys_to_remove;
 
-        for (auto& [key, value] : fields)
-        {
+        for (auto &[key, value]: fields) {
             // all pub/sub inst ends with _inst
-            if (key.size() >= 5 && key.compare(key.size() - 5, 5, "_inst") == 0)
-            {
+            if (key.size() >= 5 && key.compare(key.size() - 5, 5, "_inst") == 0) {
                 std::visit(
-                    [&](auto& inst)
-                    {
+                    [&](auto &inst) {
                         using T = std::decay_t<decltype(inst)>;
-                        if constexpr (is_shared_ptr<T>::value)
-                        {
-                            if (inst)
-                            {
+                        if constexpr (is_shared_ptr<T>::value) {
+                            if (inst) {
                                 inst.reset();
                                 keys_to_remove.push_back(key);
                             }
@@ -250,8 +218,7 @@ public:
             }
         }
 
-        for (const auto& key : keys_to_remove)
-        {
+        for (const auto &key: keys_to_remove) {
             fields.erase(key);
         }
     }

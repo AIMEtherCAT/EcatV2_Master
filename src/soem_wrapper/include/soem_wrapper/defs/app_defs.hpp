@@ -18,26 +18,22 @@ extern custom_msgs::msg::ReadCANPMU custom_msgs_readcanpmu_shared_msg;
 extern custom_msgs::msg::ReadSBUSRC custom_msgs_readsbusrc_shared_msg;
 extern custom_msgs::msg::ReadDmMotor custom_msgs_readdmmotor_shared_msg;
 
-struct DJIRC
-{
+struct DJIRC {
     static constexpr uint32_t type_id = DJIRC_APP_ID;
     static constexpr auto type_enum = "DJIRC";
     static controller_t rc_ctrl_raw;
 
     static void
-    init_sdo(uint8_t* /*buf*/, int* /*offset*/, const uint32_t& /*sn*/, const uint8_t /*slave_id*/,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t * /*buf*/, int * /*offset*/, const uint32_t & /*sn*/, const uint8_t /*slave_id*/,
+             const std::string &prefix) {
         node->create_and_insert_publisher<custom_msgs::msg::ReadDJIRC>(prefix);
     }
 
     static void
-    read(const uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    read(const uint8_t *buf, int *offset, const std::string &prefix) {
         custom_msgs_readdjirc_shared_msg.header.stamp = rclcpp::Clock().now();
 
-        if (buf[*offset + 18])
-        {
+        if (buf[*offset + 18]) {
             // channel
             custom_msgs_readdjirc_shared_msg.right_x = get_percentage(
                 (buf[*offset + 0] | buf[*offset + 1] << 8) & 0x07ff);
@@ -80,9 +76,7 @@ struct DJIRC
             custom_msgs_readdjirc_shared_msg.b = (key_value >> 15) & 0x01;
 
             custom_msgs_readdjirc_shared_msg.online = 1;
-        }
-        else
-        {
+        } else {
             custom_msgs_readdjirc_shared_msg.online = 0;
         }
 
@@ -91,21 +85,18 @@ struct DJIRC
     }
 };
 
-struct HIPNUC_IMU
-{
+struct HIPNUC_IMU {
     static constexpr uint32_t type_id = HIPNUC_IMU_CAN_APP_ID;
     static constexpr auto type_enum = "HIPNUC_IMU";
 
     static void
-    init_sdo(uint8_t* /*buf*/, int* /*offset*/, const uint32_t& /*sn*/, const uint8_t /*slave_id*/,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t * /*buf*/, int * /*offset*/, const uint32_t & /*sn*/, const uint8_t /*slave_id*/,
+             const std::string &prefix) {
         node->create_and_insert_publisher<sensor_msgs::msg::Imu>(prefix);
     }
 
     static void
-    read(const uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    read(const uint8_t *buf, int *offset, const std::string &prefix) {
         sensor_msgs_imu_shared_msg.header.stamp = rclcpp::Clock().now();
         sensor_msgs_imu_shared_msg.header.frame_id = "imu_link";
 
@@ -127,15 +118,13 @@ struct HIPNUC_IMU
     }
 };
 
-struct DJI_MOTOR
-{
+struct DJI_MOTOR {
     static constexpr uint32_t type_id = DJICAN_APP_ID;
     static constexpr auto type_enum = "DJI_MOTOR";
 
     static void
-    init_sdo(uint8_t* buf, int* offset, const uint32_t& /*sn*/, const uint8_t slave_id,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t slave_id,
+             const std::string &prefix) {
         memcpy(buf + *offset,
                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
                                   {
@@ -145,22 +134,17 @@ struct DJI_MOTOR
                23);
         *offset += 23;
 
-        for (int i = 1; i <= 4; i++)
-        {
+        for (int i = 1; i <= 4; i++) {
             if (const std::string motor_arg_prefix = fmt::format("{}sdowrite_motor{}_", prefix, i);
-                get_field_as<uint32_t>(fmt::format("{}can_id", motor_arg_prefix)) > 0)
-            {
-                switch (std::get<uint8_t>(sdo_data.get(motor_arg_prefix + "control_type")))
-                {
-                case DJIMOTOR_CTRL_TYPE_CURRENT:
-                    {
+                get_field_as<uint32_t>(fmt::format("{}can_id", motor_arg_prefix)) > 0) {
+                switch (std::get<uint8_t>(sdo_data.get(motor_arg_prefix + "control_type"))) {
+                    case DJIMOTOR_CTRL_TYPE_CURRENT: {
                         memcpy(buf + *offset,
                                sdo_data.build_buf(motor_arg_prefix, {"control_type"}), 1);
                         *offset += 1;
                         break;
                     }
-                case DJIMOTOR_CTRL_TYPE_SPEED:
-                    {
+                    case DJIMOTOR_CTRL_TYPE_SPEED: {
                         memcpy(
                             buf + *offset,
                             sdo_data.build_buf(motor_arg_prefix, {
@@ -171,8 +155,7 @@ struct DJI_MOTOR
                         *offset += 21;
                         break;
                     }
-                case DJIMOTOR_CTRL_TYPE_SINGLE_ROUND_POSITION:
-                    {
+                    case DJIMOTOR_CTRL_TYPE_SINGLE_ROUND_POSITION: {
                         memcpy(
                             buf + *offset,
                             sdo_data.build_buf(motor_arg_prefix, {
@@ -185,8 +168,7 @@ struct DJI_MOTOR
                         *offset += 41;
                         break;
                     }
-                default:
-                    {
+                    default: {
                     }
                 }
             }
@@ -197,36 +179,31 @@ struct DJI_MOTOR
     }
 
     static void
-    read(const uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    read(const uint8_t *buf, int *offset, const std::string &prefix) {
         custom_msgs_readdjican_shared_msg.header.stamp = rclcpp::Clock().now();
 
-        if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor1_can_id", prefix), 0) > 0)
-        {
+        if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor1_can_id", prefix), 0) > 0) {
             custom_msgs_readdjican_shared_msg.motor1_ecd = read_uint16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor1_rpm = read_int16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor1_current = read_int16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor1_temperature = read_uint8(buf, offset);
         }
 
-        if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor2_can_id", prefix), 0) > 0)
-        {
+        if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor2_can_id", prefix), 0) > 0) {
             custom_msgs_readdjican_shared_msg.motor2_ecd = read_uint16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor2_rpm = read_int16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor2_current = read_int16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor2_temperature = read_uint8(buf, offset);
         }
 
-        if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor3_can_id", prefix), 0) > 0)
-        {
+        if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor3_can_id", prefix), 0) > 0) {
             custom_msgs_readdjican_shared_msg.motor3_ecd = read_uint16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor3_rpm = read_int16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor3_current = read_int16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor3_temperature = read_uint8(buf, offset);
         }
 
-        if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor4_can_id", prefix), 0) > 0)
-        {
+        if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor4_can_id", prefix), 0) > 0) {
             custom_msgs_readdjican_shared_msg.motor4_ecd = read_uint16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor4_rpm = read_int16(buf, offset);
             custom_msgs_readdjican_shared_msg.motor4_current = read_int16(buf, offset);
@@ -237,15 +214,13 @@ struct DJI_MOTOR
     }
 };
 
-struct DSHOT
-{
+struct DSHOT {
     static constexpr uint32_t type_id = DSHOT_APP_ID;
     static constexpr auto type_enum = "DSHOT";
 
     static void
-    init_sdo(uint8_t* buf, int* offset, const uint32_t& /*sn*/, const uint8_t slave_id,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t slave_id,
+             const std::string &prefix) {
         memcpy(buf + *offset,
                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
                                   {"dshot_id", "init_value"}),
@@ -255,11 +230,9 @@ struct DSHOT
     }
 
     static void
-    init_value(uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    init_value(uint8_t *buf, int *offset, const std::string &prefix) {
         const uint16_t init_value = get_field_as<uint16_t>(fmt::format("{}sdowrite_init_value", prefix));
-        for (int i = 1; i <= 4; i++)
-        {
+        for (int i = 1; i <= 4; i++) {
             RCLCPP_INFO(cfg_logger, "prefix=%s will write init value=%d at m2s buf idx=%d", prefix.c_str(), init_value,
                         *offset);
             write_uint16(init_value, buf, offset);
@@ -267,15 +240,13 @@ struct DSHOT
     }
 };
 
-struct VANILLA_PWM
-{
+struct VANILLA_PWM {
     static constexpr uint32_t type_id = VANILLA_PWM_APP_ID;
     static constexpr auto type_enum = "VANILLA_PWM";
 
     static void
-    init_sdo(uint8_t* buf, int* offset, const uint32_t& /*sn*/, const uint8_t slave_id,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t slave_id,
+             const std::string &prefix) {
         memcpy(buf + *offset,
                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
                                   {"tim_id", "pwm_period", "init_value"}),
@@ -285,11 +256,9 @@ struct VANILLA_PWM
     }
 
     static void
-    init_value(uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    init_value(uint8_t *buf, int *offset, const std::string &prefix) {
         const uint16_t init_value = get_field_as<uint16_t>(fmt::format("{}sdowrite_init_value", prefix));
-        for (int i = 1; i <= 4; i++)
-        {
+        for (int i = 1; i <= 4; i++) {
             RCLCPP_INFO(cfg_logger, "prefix=%s will write init value=%d at m2s buf idx=%d", prefix.c_str(), init_value,
                         *offset);
             write_uint16(init_value, buf, offset);
@@ -297,15 +266,13 @@ struct VANILLA_PWM
     }
 };
 
-struct EXTERNAL_PWM
-{
+struct EXTERNAL_PWM {
     static constexpr uint32_t type_id = EXTERNAL_PWM_APP_ID;
     static constexpr auto type_enum = "EXTERNAL_PWM";
 
     static void
-    init_sdo(uint8_t* buf, int* offset, const uint32_t& /*sn*/, const uint8_t slave_id,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t slave_id,
+             const std::string &prefix) {
         memcpy(buf + *offset,
                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
                                   {"uart_id", "pwm_period", "channel_num", "init_value"}),
@@ -315,13 +282,11 @@ struct EXTERNAL_PWM
     }
 
     static void
-    init_value(uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    init_value(uint8_t *buf, int *offset, const std::string &prefix) {
         const uint16_t init_value = get_field_as<uint16_t>(fmt::format("{}sdowrite_init_value", prefix));
         const uint8_t channel_num = get_field_as<uint8_t>(fmt::format("{}sdowrite_channel_num", prefix));
 
-        for (int i = 1; i <= channel_num; i++)
-        {
+        for (int i = 1; i <= channel_num; i++) {
             RCLCPP_INFO(cfg_logger, "prefix=%s will write init value=%d at m2s buf idx=%d", prefix.c_str(), init_value,
                         *offset);
             write_uint16(init_value, buf, offset);
@@ -329,15 +294,13 @@ struct EXTERNAL_PWM
     }
 };
 
-struct MS5876_30BA
-{
+struct MS5876_30BA {
     static constexpr uint32_t type_id = MS5876_30BA_APP_ID;
     static constexpr auto type_enum = "MS5876_30BA";
 
     static void
-    init_sdo(uint8_t* buf, int* offset, const uint32_t& /*sn*/, const uint8_t /*slave_id*/,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t /*slave_id*/,
+             const std::string &prefix) {
         memcpy(buf + *offset,
                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
                                   {"i2c_id", "osr_id"}),
@@ -347,8 +310,7 @@ struct MS5876_30BA
     }
 
     static void
-    read(const uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    read(const uint8_t *buf, int *offset, const std::string &prefix) {
         custom_msgs_readms5876ba30_shared_msg.header.stamp = rclcpp::Clock().now();
 
         custom_msgs_readms5876ba30_shared_msg.temperature = read_int32(buf, offset) / 100.;
@@ -358,73 +320,62 @@ struct MS5876_30BA
     }
 };
 
-struct LK_MOTOR
-{
+struct LK_MOTOR {
     static constexpr uint32_t type_id = LK_APP_ID;
     static constexpr auto type_enum = "LK_MOTOR";
 
     static void
-    init_sdo(uint8_t* buf, int* offset, const uint32_t& /*sn*/, const uint8_t slave_id,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t slave_id,
+             const std::string &prefix) {
         memcpy(buf + *offset,
                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
                                   {"control_period", "can_packet_id", "can_inst", "control_type"}),
                8);
         *offset += 8;
 
-        switch (get_field_as<uint8_t>(fmt::format("{}sdowrite_control_type", prefix)))
-        {
-        case LK_CTRL_TYPE_OPENLOOP_CURRENT:
-            {
+        switch (get_field_as<uint8_t>(fmt::format("{}sdowrite_control_type", prefix))) {
+            case LK_CTRL_TYPE_OPENLOOP_CURRENT: {
                 node->create_and_insert_subscriber<custom_msgs::msg::WriteLkMotorOpenloopControl>(prefix, slave_id);
                 break;
             }
 
-        case LK_CTRL_TYPE_TORQUE:
-            {
+            case LK_CTRL_TYPE_TORQUE: {
                 node->create_and_insert_subscriber<custom_msgs::msg::WriteLkMotorTorqueControl>(prefix, slave_id);
                 break;
             }
 
-        case LK_CTRL_TYPE_SPEED_WITH_TORQUE_LIMIT:
-            {
+            case LK_CTRL_TYPE_SPEED_WITH_TORQUE_LIMIT: {
                 node->create_and_insert_subscriber<custom_msgs::msg::WriteLkMotorSpeedControlWithTorqueLimit>(
                     prefix, slave_id);
                 break;
             }
 
-        case LK_CTRL_TYPE_MULTI_ROUND_POSITION:
-            {
+            case LK_CTRL_TYPE_MULTI_ROUND_POSITION: {
                 node->create_and_insert_subscriber<custom_msgs::msg::WriteLkMotorMultiRoundPositionControl>(
                     prefix, slave_id);
                 break;
             }
 
-        case LK_CTRL_TYPE_MULTI_ROUND_POSITION_WITH_SPEED_LIMIT:
-            {
+            case LK_CTRL_TYPE_MULTI_ROUND_POSITION_WITH_SPEED_LIMIT: {
                 node->create_and_insert_subscriber<
                     custom_msgs::msg::WriteLkMotorMultiRoundPositionControlWithSpeedLimit>(
                     prefix, slave_id);
                 break;
             }
 
-        case LK_CTRL_TYPE_SINGLE_ROUND_POSITION:
-            {
+            case LK_CTRL_TYPE_SINGLE_ROUND_POSITION: {
                 node->create_and_insert_subscriber<custom_msgs::msg::WriteLkMotorSingleRoundPositionControl>(
                     prefix, slave_id);
                 break;
             }
 
-        case LK_CTRL_TYPE_SINGLE_ROUND_POSITION_WITH_SPEED_LIMIT:
-            {
+            case LK_CTRL_TYPE_SINGLE_ROUND_POSITION_WITH_SPEED_LIMIT: {
                 node->create_and_insert_subscriber<
                     custom_msgs::msg::WriteLkMotorSingleRoundPositionControlWithSpeedLimit>(
                     prefix, slave_id);
                 break;
             }
-        default:
-            {
+            default: {
             }
         }
 
@@ -432,8 +383,7 @@ struct LK_MOTOR
     }
 
     static void
-    read(const uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    read(const uint8_t *buf, int *offset, const std::string &prefix) {
         custom_msgs_readlkmotor_shared_msg.header.stamp = rclcpp::Clock().now();
 
         custom_msgs_readlkmotor_shared_msg.current = read_int16(buf, offset);
@@ -445,15 +395,13 @@ struct LK_MOTOR
     }
 };
 
-struct ADC
-{
+struct ADC {
     static constexpr uint32_t type_id = ADC_APP_ID;
     static constexpr auto type_enum = "ADC";
 
     static void
-    init_sdo(uint8_t* buf, int* offset, const uint32_t& /*sn*/, const uint8_t /*slave_id*/,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t /*slave_id*/,
+             const std::string &prefix) {
         memcpy(buf + *offset,
                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
                                   {"channel1_coefficient_per_volt", "channel2_coefficient_per_volt"}),
@@ -463,8 +411,7 @@ struct ADC
     }
 
     static void
-    read(const uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    read(const uint8_t *buf, int *offset, const std::string &prefix) {
         custom_msgs_readadc_shared_msg.header.stamp = rclcpp::Clock().now();
 
         custom_msgs_readadc_shared_msg.channel1 = read_float(buf, offset);
@@ -474,21 +421,18 @@ struct ADC
     }
 };
 
-struct CAN_PMU
-{
+struct CAN_PMU {
     static constexpr uint32_t type_id = CAN_PMU_APP_ID;
     static constexpr auto type_enum = "CAN_PMU";
 
     static void
-    init_sdo(uint8_t* /*buf*/, int* /*offset*/, const uint32_t& /*sn*/, const uint8_t /*slave_id*/,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t * /*buf*/, int * /*offset*/, const uint32_t & /*sn*/, const uint8_t /*slave_id*/,
+             const std::string &prefix) {
         node->create_and_insert_publisher<custom_msgs::msg::ReadCANPMU>(prefix);
     }
 
     static void
-    read(const uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    read(const uint8_t *buf, int *offset, const std::string &prefix) {
         custom_msgs_readcanpmu_shared_msg.header.stamp = rclcpp::Clock().now();
 
         custom_msgs_readcanpmu_shared_msg.temperature = read_float16(buf, offset) - 273.15f;
@@ -499,51 +443,47 @@ struct CAN_PMU
     }
 };
 
-struct SBUSRC
-{
+struct SBUSRC {
     static constexpr uint32_t type_id = SBUS_RC_APP_ID;
     static constexpr auto type_enum = "SBUSRS";
 
     static void
-    init_sdo(uint8_t* /*buf*/, int* /*offset*/, const uint32_t& /*sn*/, const uint8_t /*slave_id*/,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t * /*buf*/, int * /*offset*/, const uint32_t & /*sn*/, const uint8_t /*slave_id*/,
+             const std::string &prefix) {
         node->create_and_insert_publisher<custom_msgs::msg::ReadSBUSRC>(prefix);
         custom_msgs_readsbusrc_shared_msg.channels.resize(16);
     }
 
     static void
-    read(const uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    read(const uint8_t *buf, int *offset, const std::string &prefix) {
         custom_msgs_readsbusrc_shared_msg.header.stamp = rclcpp::Clock().now();
 
-        if (buf[*offset + 23])
-        {
+        if (buf[*offset + 23]) {
             custom_msgs_readsbusrc_shared_msg.channels[0] = ((buf[*offset + 0] | buf[*offset + 1] << 8) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[1] = ((buf[*offset + 1] >> 3 | buf[*offset + 2] << 5) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[2] = ((buf[*offset + 2] >> 6 | buf[*offset + 3] << 2 | buf[*
-                offset + 4] << 10) & 0x07FF);
+                                                                  offset + 4] << 10) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[3] = ((buf[*offset + 4] >> 1 | buf[*offset + 5] << 7) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[4] = ((buf[*offset + 5] >> 4 | buf[*offset + 6] << 4) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[5] = ((buf[*offset + 6] >> 7 | buf[*offset + 7] << 1 | buf[*
-                offset + 8] << 9) & 0x07FF);
+                                                                  offset + 8] << 9) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[6] = ((buf[*offset + 8] >> 2 | buf[*offset + 9] << 6) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[7] = ((buf[*offset + 9] >> 5 | buf[*offset + 10] << 3) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[8] = ((buf[*offset + 11] | buf[*offset + 12] << 8) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[9] = ((buf[*offset + 12] >> 3 | buf[*offset + 13] << 5) &
-                0x07FF);
+                                                             0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[10] = ((buf[*offset + 13] >> 6 | buf[*offset + 14] << 2 | buf[*
-                offset + 15] << 10) & 0x07FF);
+                                                                   offset + 15] << 10) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[11] = ((buf[*offset + 15] >> 1 | buf[*offset + 16] << 7) &
-                0x07FF);
+                                                              0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[12] = ((buf[*offset + 16] >> 4 | buf[*offset + 17] << 4) &
-                0x07FF);
+                                                              0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[13] = ((buf[*offset + 17] >> 7 | buf[*offset + 18] << 1 | buf[*
-                offset + 19] << 9) & 0x07FF);
+                                                                   offset + 19] << 9) & 0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[14] = ((buf[*offset + 19] >> 2 | buf[*offset + 20] << 6) &
-                0x07FF);
+                                                              0x07FF);
             custom_msgs_readsbusrc_shared_msg.channels[15] = ((buf[*offset + 20] >> 5 | buf[*offset + 21] << 3) &
-                0x07FF);
+                                                              0x07FF);
 
             custom_msgs_readsbusrc_shared_msg.ch17 = buf[*offset + 22] & 0x01 ? 1 : 0;
             custom_msgs_readsbusrc_shared_msg.ch18 = buf[*offset + 22] & 0x02 ? 1 : 0;
@@ -551,9 +491,7 @@ struct SBUSRC
             custom_msgs_readsbusrc_shared_msg.frame_lost = buf[*offset + 22] & 0x08 ? 1 : 0;
 
             custom_msgs_readsbusrc_shared_msg.online = 1;
-        }
-        else
-        {
+        } else {
             custom_msgs_readsbusrc_shared_msg.online = 0;
         }
 
@@ -562,45 +500,38 @@ struct SBUSRC
     }
 };
 
-struct DM_MOTOR
-{
+struct DM_MOTOR {
     static constexpr uint32_t type_id = DM_MOTOR_APP_ID;
     static constexpr auto type_enum = "DM_MOTOR";
 
     static void
-    init_sdo(uint8_t* buf, int* offset, const uint32_t& /*sn*/, const uint8_t slave_id,
-             const std::string& prefix)
-    {
+    init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t slave_id,
+             const std::string &prefix) {
         memcpy(buf + *offset,
                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
                                   {"control_period", "can_id", "master_id", "can_inst", "control_type"}),
                8);
         *offset += 8;
 
-        switch (get_field_as<uint8_t>(fmt::format("{}sdowrite_control_type", prefix)))
-        {
-        case DM_CTRL_TYPE_MIT:
-            {
+        switch (get_field_as<uint8_t>(fmt::format("{}sdowrite_control_type", prefix))) {
+            case DM_CTRL_TYPE_MIT: {
                 node->create_and_insert_subscriber<custom_msgs::msg::WriteDmMotorMITControl>(prefix, slave_id);
                 break;
             }
 
-        case DM_CTRL_TYPE_POSITION_WITH_SPEED_LIMIT:
-            {
+            case DM_CTRL_TYPE_POSITION_WITH_SPEED_LIMIT: {
                 node->create_and_insert_subscriber<custom_msgs::msg::WriteDmMotorPositionControlWithSpeedLimit>(
                     prefix, slave_id);
                 break;
             }
 
-        case DM_CTRL_TYPE_SPEED:
-            {
+            case DM_CTRL_TYPE_SPEED: {
                 node->create_and_insert_subscriber<custom_msgs::msg::WriteDmMotorSpeedControl>(
                     prefix, slave_id);
                 break;
             }
 
-        default:
-            {
+            default: {
             }
         }
 
@@ -608,8 +539,7 @@ struct DM_MOTOR
     }
 
     static void
-    read(const uint8_t* buf, int* offset, const std::string& prefix)
-    {
+    read(const uint8_t *buf, int *offset, const std::string &prefix) {
         custom_msgs_readdmmotor_shared_msg.header.stamp = rclcpp::Clock().now();
 
         custom_msgs_readdmmotor_shared_msg.disabled = 0;
@@ -622,68 +552,54 @@ struct DM_MOTOR
         custom_msgs_readdmmotor_shared_msg.communication_lost = 0;
         custom_msgs_readdmmotor_shared_msg.overload = 0;
 
-        if (buf[*offset + 8] == 0)
-        {
+        if (buf[*offset + 8] == 0) {
             custom_msgs_readdmmotor_shared_msg.online = 0;
             custom_msgs_readdmmotor_shared_msg.ecd = 0;
             custom_msgs_readdmmotor_shared_msg.velocity = 0;
             custom_msgs_readdmmotor_shared_msg.torque = 0;
             custom_msgs_readdmmotor_shared_msg.mos_temperature = 0;
             custom_msgs_readdmmotor_shared_msg.rotor_temperature = 0;
-        }
-        else
-        {
+        } else {
             custom_msgs_readdmmotor_shared_msg.online = 1;
 
-            switch (buf[*offset + 0] >> 4)
-            {
-            case 0x0:
-                {
+            switch (buf[*offset + 0] >> 4) {
+                case 0x0: {
                     custom_msgs_readdmmotor_shared_msg.disabled = 1;
                     break;
                 }
-            case 0x1:
-                {
+                case 0x1: {
                     custom_msgs_readdmmotor_shared_msg.enabled = 1;
                     break;
                 }
-            case 0x8:
-                {
+                case 0x8: {
                     custom_msgs_readdmmotor_shared_msg.overvoltage = 1;
                     break;
                 }
-            case 0x9:
-                {
+                case 0x9: {
                     custom_msgs_readdmmotor_shared_msg.undervoltage = 1;
                     break;
                 }
-            case 0xA:
-                {
+                case 0xA: {
                     custom_msgs_readdmmotor_shared_msg.overcurrent = 1;
                     break;
                 }
-            case 0xB:
-                {
+                case 0xB: {
                     custom_msgs_readdmmotor_shared_msg.mos_overtemperature = 1;
                     break;
                 }
-            case 0xC:
-                {
+                case 0xC: {
                     custom_msgs_readdmmotor_shared_msg.rotor_overtemperature = 1;
                     break;
                 }
-            case 0xD:
-                {
+                case 0xD: {
                     custom_msgs_readdmmotor_shared_msg.communication_lost = 1;
                     break;
                 }
-            case 0xE:
-                {
+                case 0xE: {
                     custom_msgs_readdmmotor_shared_msg.overload = 1;
                     break;
                 }
-            default:
-                {
+                default: {
                 }
             }
 
@@ -704,20 +620,6 @@ struct DM_MOTOR
 
         *offset += 9;
         EthercatNode::publish_msg<custom_msgs::msg::ReadDmMotor>(prefix, custom_msgs_readdmmotor_shared_msg);
-    }
-
-    static void
-    init_value(uint8_t* buf, int* offset, const std::string& prefix)
-    {
-        write_uint8(0, buf, offset);
-        if (get_field_as<uint8_t>(fmt::format("{}sdowrite_control_type", prefix)) <= 2)
-        {
-            write_float(0, buf, offset);
-            write_float(0, buf, offset);
-        } else
-        {
-            write_float(0, buf, offset);
-        }
     }
 };
 

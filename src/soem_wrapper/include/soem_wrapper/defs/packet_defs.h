@@ -50,28 +50,26 @@
 #define MS5876_30BA_OSR_4096 0x05
 #define MS5876_30BA_OSR_8192 0x06
 
-typedef struct
-{
-    uint16_t w : 1;
-    uint16_t s : 1;
-    uint16_t a : 1;
-    uint16_t d : 1;
-    uint16_t shift : 1;
-    uint16_t ctrl : 1;
-    uint16_t q : 1;
-    uint16_t e : 1;
-    uint16_t r : 1;
-    uint16_t f : 1;
-    uint16_t g : 1;
-    uint16_t z : 1;
-    uint16_t x : 1;
-    uint16_t c : 1;
-    uint16_t v : 1;
-    uint16_t b : 1;
+typedef struct {
+    uint16_t w: 1;
+    uint16_t s: 1;
+    uint16_t a: 1;
+    uint16_t d: 1;
+    uint16_t shift: 1;
+    uint16_t ctrl: 1;
+    uint16_t q: 1;
+    uint16_t e: 1;
+    uint16_t r: 1;
+    uint16_t f: 1;
+    uint16_t g: 1;
+    uint16_t z: 1;
+    uint16_t x: 1;
+    uint16_t c: 1;
+    uint16_t v: 1;
+    uint16_t b: 1;
 } Key_t;
 
-typedef struct
-{
+typedef struct {
     uint16_t channel[5];
     uint8_t switcher[2];
 
