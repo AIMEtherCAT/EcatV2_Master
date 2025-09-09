@@ -13,7 +13,9 @@ Since BIOS layouts vary by manufacturer, the configuration items listed below ma
 
 ### System Setup
 
-**Ubuntu 22.04** is recommended for this application.
+**Ubuntu 22.04** with **ROS2 Humble** is recommended for this application.
+
+**Ubuntu 24.04** with **ROS2 Jazzy** is also working well.
 
 #### Register Ubuntu One Account
 
