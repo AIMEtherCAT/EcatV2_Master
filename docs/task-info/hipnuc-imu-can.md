@@ -7,7 +7,7 @@
 Connect your CAN PMU receiver to the ``CAN2`` port of your EtherCAT module. All PMUs using the UAVCAN protocol and
 sending BatteryInfo-type messages should be supported.
 
-Note, you can only connect **one** PMU into the same CAN network simultaneously.
+> **Note:** you can only connect **one** PMU into the same CAN network simultaneously.
 
 #### Configuration items
 

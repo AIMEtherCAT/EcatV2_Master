@@ -7,7 +7,7 @@
 Connect your can pmu receiver into ``CAN2`` port of your EtherCAT module. All PMU using uavcan protocol should be
 supported.
 
-Note, you can only connect **one** ofpmu receiver into the same CAN network at the same time.
+> **Note:** you can only connect **one** ofpmu receiver into the same CAN network at the same time.
 
 #### Configuration items
 
