@@ -55,6 +55,7 @@ ROS2 message type(s):
 * [MS5837 (30BA)](task-info/ms5837-30ba.md)
 * [Onboard ADC](task-info/onboard-adc.md)
 * [PMU (CAN)](task-info/pmu-can.md)
+* [SBUS RC](task-info/sbus-rc.md)
 
 ### Download Configuration File
 
