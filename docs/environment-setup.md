@@ -95,6 +95,26 @@ soem_wrapper to your project.
 If this project updates in the future, use the command ``git submodule update --recursive --remote`` to update code for
 soem_wrapper.
 
+### Flash EEPROM For EtherCAT Module
+
+Now you may have cloned our ``soem_wrapper `` into your workspace.
+
+Go to the root path of your workspace, you should now be able to access these two folders: ``src/EcatV2_Master/tools`` and ``src/EcatV2_Master/eeproms``
+
+![tools-tree.png](img/tools-tree.png)
+
+Use the command ``sudo su`` to switch to the root user. Then use the ``chmod +x src/EcatV2_Master/tools/*`` command to make these tools executable.
+
+In the folder ``src/EcatV2_Master/eeproms``, you can find EEPROM files for all available modules. Select one that you want to flash into your module. Use the command ``src/EcatV2_Master/tools/eepromtool <NIC name> <slave id> -w <eeprom file path>`` to flash the EEPROM for your EtherCAT module.
+
+For example, if you want to flash a ``H750 Universal Module``, your NIC name is ``enp3s0``, and this module is the first module in the connection chain (which means it connects to your computer's NIC **directly**). Then the command you use would be ``src/EcatV2_Master/tools/eepromtool enp3s0 1 -w src/EcatV2_Master/eeproms/58100H750_UniversalModule.bin``.
+
+You could run this command multiple times to ensure flashing progress is finished successfully.
+
+![flash-done.png](img/flash-done.png)
+
+After that, you need to power off and re-power on the EtherCAT module to make it effective.
+
 ### Done
 
 After finishing these steps, your system is now available to run the SOEM application. Please then refer to the next tutorial about how to run your first test.
