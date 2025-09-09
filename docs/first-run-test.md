@@ -225,6 +225,14 @@ $ ros2 launch stewart_bringup bringup.launch.py
 [soem_backend-1] [INFO] [1753707019.749195776] [EthercatNode_DATA]: slave id 1 confirmed ready
 ```
 
-After finishing these steps, you may confirm that your system and slave module are working correctly. Please then refer to the next tutorial about how to use our soem_wrapper application.
+### Done
 
-You can now subscribe to the topic ``/latency``, which will show the travel latency between your computer and the slave module in milliseconds. This value should be less than 1.0 in most situations. If it is greater than 1.0, please check your system CPU isolation settings.
+After finishing these steps, you may see lines like ``slave id n confirmed ready``, which confirms that your system and
+slave module are working correctly. Note, if you connected more than one slave, you should see this messages multiple
+times each with different slave id, in order to make sure that all slaves are ready.
+
+If everything works fine, You can now subscribe to the topic ``/latency``, which will show the travel latency between
+your computer and the slave module in milliseconds. This value should be less than 1.0 in most situations. If it is
+greater than 1.0, please check your system CPU isolation settings.
+
+Please then refer to the next tutorial about how to use our soem_wrapper application.

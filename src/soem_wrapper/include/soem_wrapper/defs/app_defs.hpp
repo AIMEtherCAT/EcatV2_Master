@@ -12,7 +12,7 @@ extern sensor_msgs::msg::Imu sensor_msgs_imu_shared_msg;
 extern custom_msgs::msg::ReadDJIRC custom_msgs_readdjirc_shared_msg;
 extern custom_msgs::msg::ReadDJICAN custom_msgs_readdjican_shared_msg;
 extern custom_msgs::msg::ReadLkMotor custom_msgs_readlkmotor_shared_msg;
-extern custom_msgs::msg::ReadMS5876BA30 custom_msgs_readms5876ba30_shared_msg;
+extern custom_msgs::msg::ReadMS5837BA30 custom_msgs_readms5837ba30_shared_msg;
 extern custom_msgs::msg::ReadADC custom_msgs_readadc_shared_msg;
 extern custom_msgs::msg::ReadCANPMU custom_msgs_readcanpmu_shared_msg;
 extern custom_msgs::msg::ReadSBUSRC custom_msgs_readsbusrc_shared_msg;
@@ -294,9 +294,9 @@ struct EXTERNAL_PWM {
     }
 };
 
-struct MS5876_30BA {
-    static constexpr uint32_t type_id = MS5876_30BA_APP_ID;
-    static constexpr auto type_enum = "MS5876_30BA";
+struct MS5837_30BA {
+    static constexpr uint32_t type_id = MS5837_30BA_APP_ID;
+    static constexpr auto type_enum = "MS5837_30BA";
 
     static void
     init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t /*slave_id*/,
@@ -306,17 +306,17 @@ struct MS5876_30BA {
                                   {"i2c_id", "osr_id"}),
                2);
         *offset += 2;
-        node->create_and_insert_publisher<custom_msgs::msg::ReadMS5876BA30>(prefix);
+        node->create_and_insert_publisher<custom_msgs::msg::ReadMS5837BA30>(prefix);
     }
 
     static void
     read(const uint8_t *buf, int *offset, const std::string &prefix) {
-        custom_msgs_readms5876ba30_shared_msg.header.stamp = rclcpp::Clock().now();
+        custom_msgs_readms5837ba30_shared_msg.header.stamp = rclcpp::Clock().now();
 
-        custom_msgs_readms5876ba30_shared_msg.temperature = read_int32(buf, offset) / 100.;
-        custom_msgs_readms5876ba30_shared_msg.pressure = read_int32(buf, offset) / 10.;
+        custom_msgs_readms5837ba30_shared_msg.temperature = read_int32(buf, offset) / 100.;
+        custom_msgs_readms5837ba30_shared_msg.pressure = read_int32(buf, offset) / 10.;
 
-        EthercatNode::publish_msg<custom_msgs::msg::ReadMS5876BA30>(prefix, custom_msgs_readms5876ba30_shared_msg);
+        EthercatNode::publish_msg<custom_msgs::msg::ReadMS5837BA30>(prefix, custom_msgs_readms5837ba30_shared_msg);
     }
 };
 

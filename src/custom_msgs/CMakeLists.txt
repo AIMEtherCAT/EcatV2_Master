@@ -32,7 +32,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/WriteVanillaPWM.msg"
     "msg/WriteExternalPWM.msg"
 
-    "msg/ReadMS5876BA30.msg"
+    "msg/ReadMS5837BA30.msg"
 
     "msg/ReadADC.msg"
 

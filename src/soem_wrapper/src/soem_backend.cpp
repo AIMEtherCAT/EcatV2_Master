@@ -24,7 +24,7 @@ sensor_msgs::msg::Imu sensor_msgs_imu_shared_msg;
 custom_msgs::msg::ReadDJIRC custom_msgs_readdjirc_shared_msg;
 custom_msgs::msg::ReadDJICAN custom_msgs_readdjican_shared_msg;
 custom_msgs::msg::ReadLkMotor custom_msgs_readlkmotor_shared_msg;
-custom_msgs::msg::ReadMS5876BA30 custom_msgs_readms5876ba30_shared_msg;
+custom_msgs::msg::ReadMS5837BA30 custom_msgs_readms5837ba30_shared_msg;
 custom_msgs::msg::ReadADC custom_msgs_readadc_shared_msg;
 custom_msgs::msg::ReadCANPMU custom_msgs_readcanpmu_shared_msg;
 custom_msgs::msg::ReadSBUSRC custom_msgs_readsbusrc_shared_msg;
@@ -93,7 +93,7 @@ void EthercatNode::datacycle_callback() {
                 }
                 if (all_ready) {
                     all_slave_ready = true;
-                    RCLCPP_INFO(data_logger, "========== All %d slaves ready, system started ==========",
+                    RCLCPP_INFO(data_logger, "========== All %d slave(s) ready, system started ==========",
                                 ec_slavecount);
                 }
             }
@@ -433,7 +433,7 @@ void EthercatNode::register_components() {
     register_app<DSHOT>();
     register_app<VANILLA_PWM>();
     register_app<EXTERNAL_PWM>();
-    register_app<MS5876_30BA>();
+    register_app<MS5837_30BA>();
     register_app<LK_MOTOR>();
     register_app<ADC>();
     register_app<CAN_PMU>();

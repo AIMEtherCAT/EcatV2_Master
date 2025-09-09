@@ -47,7 +47,7 @@
 #include "custom_msgs/msg/write_djican.hpp"
 #include "custom_msgs/msg/write_vanilla_pwm.hpp"
 #include "custom_msgs/msg/write_external_pwm.hpp"
-#include "custom_msgs/msg/read_ms5876_ba30.hpp"
+#include "custom_msgs/msg/read_ms5837_ba30.hpp"
 #include "custom_msgs/msg/read_adc.hpp"
 #include "custom_msgs/msg/read_canpmu.hpp"
 
@@ -85,7 +85,7 @@ using Variant = std::variant<
     rclcpp::Subscription<custom_msgs::msg::WriteDJICAN>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteVanillaPWM>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteExternalPWM>::SharedPtr,
-    rclcpp::Publisher<custom_msgs::msg::ReadMS5876BA30>::SharedPtr,
+    rclcpp::Publisher<custom_msgs::msg::ReadMS5837BA30>::SharedPtr,
     rclcpp::Publisher<custom_msgs::msg::ReadADC>::SharedPtr,
     rclcpp::Publisher<custom_msgs::msg::ReadCANPMU>::SharedPtr,
     rclcpp::Publisher<custom_msgs::msg::ReadDmMotor>::SharedPtr,

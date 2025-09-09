@@ -6,7 +6,7 @@
 #define DJICAN_APP_ID 5
 #define VANILLA_PWM_APP_ID 6
 #define EXTERNAL_PWM_APP_ID 7
-#define MS5876_30BA_APP_ID 8
+#define MS5837_30BA_APP_ID 8
 #define ADC_APP_ID 9
 #define CAN_PMU_APP_ID 10
 
