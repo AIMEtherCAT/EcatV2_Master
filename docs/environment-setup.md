@@ -115,6 +115,20 @@ You could run this command multiple times to ensure flashing progress is finishe
 
 After that, you need to power off and re-power on the EtherCAT module to make it effective.
 
+### Flash Firmware for MCU
+
+Usually, this step should be done before you get the EtherCAT module from the manufacturing partners, but if you want to
+update the firmware or have any problems, you can re-flash the firmware of your EtherCAT module.
+
+You could build it yourself, and we also provide built artifacts; you can find them on the GitHub Action page.
+
+Since this may not be a compulsory step, you may need to find out how to flash firmware by yourself. The format of our
+pre-built artifacts is ``.elf``
+
+Firmwares available now:
+
+* [H750 Universal Module](https://github.com/AIMEtherCAT/EcatV2_AX58100_H750_Universal)
+
 ### Done
 
 After finishing these steps, your system is now available to run the SOEM application. Please then refer to the next tutorial about how to run your first test.
