@@ -46,16 +46,20 @@ the arrow on the left side of the rows to show more details and configurations f
 These tasks are currently available, each with an introduction of hardware preparation, configuration items, and related
 ROS2 message type(s):
 
-* [DJI RC](task-info/dji-rc.md)
-* [HIPNUC IMU](task-info/hipnuc-imu-can.md)
-* [DSHOT](task-info/dshot.md)
-* [DJI Motor](task-info/dji-motor.md)
-* [Onboard PWM](task-info/onboard-pwm.md)
-* [External PWM](task-info/external-pwm.md)
-* [MS5837 (30BA)](task-info/ms5837-30ba.md)
-* [Onboard ADC](task-info/onboard-adc.md)
-* [PMU (CAN)](task-info/pmu-can.md)
-* [SBUS RC](task-info/sbus-rc.md)
+* RCs
+  * [DJI RC](task-info/dji-rc.md)
+  * [SBUS RC](task-info/sbus-rc.md)
+* Sensors
+  * [HIPNUC IMU](task-info/hipnuc-imu-can.md)
+  * [PMU (CAN)](task-info/pmu-can.md)
+  * [MS5837 (30BA)](task-info/ms5837-30ba.md)
+  * [Onboard ADC](task-info/onboard-adc.md)
+* Actuators
+  * [DSHOT](task-info/dshot.md)
+  * [DJI Motor](task-info/dji-motor.md)
+  * [Onboard PWM](task-info/onboard-pwm.md)
+  * [External PWM](task-info/external-pwm.md)
+  * [DM Motor](task-info/dm-motor.md)
 
 ### Download Configuration File
 
