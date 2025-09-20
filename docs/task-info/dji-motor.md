@@ -31,7 +31,7 @@ please reduce the motor feedback or control frequency.
 * Motor<n> ID
     * This should be set within the range of the corresponding control packet ID.
 * Motor<n> Control Type
-    * The control type of motor
+    * The control type of motor.
         * Open-loop Current for direct command forward (Note, DJI esc may have their own current control loop; this
           ``openloop`` only means the EtherCAT module will not control it in a closed loop)
         * Speed for single pid, control target is rpm

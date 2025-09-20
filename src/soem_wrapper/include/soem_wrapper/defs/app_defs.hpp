@@ -387,7 +387,7 @@ struct LK_MOTOR {
         custom_msgs_readlkmotor_shared_msg.header.stamp = rclcpp::Clock().now();
 
         custom_msgs_readlkmotor_shared_msg.current = read_int16(buf, offset);
-        custom_msgs_readlkmotor_shared_msg.rpm = read_int16(buf, offset);
+        custom_msgs_readlkmotor_shared_msg.speed = read_int16(buf, offset);
         custom_msgs_readlkmotor_shared_msg.encoder = read_uint16(buf, offset);
         custom_msgs_readlkmotor_shared_msg.temperature = read_uint8(buf, offset);
 

@@ -28,6 +28,11 @@ please reduce the motor feedback or control frequency.
     * Max velocity for data mapping.
 * T Max
     * Max torque for data mapping.
+* Control Type
+  * The control type of motor.
+    * MIT
+    * Position Control With Speed Limit, the unit of control target is rad, the unit of speed limitation is rad/s
+    * Speed Control, the unit of control target is rad/s
 
 ``CAN ID/Master ID`` and ``P/V/T Max`` can be found in the DM Debugging Tool as below.
 

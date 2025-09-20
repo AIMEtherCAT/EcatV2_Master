@@ -60,6 +60,7 @@ ROS2 message type(s):
   * [Onboard PWM](task-info/onboard-pwm.md)
   * [External PWM](task-info/external-pwm.md)
   * [DM Motor](task-info/dm-motor.md)
+  * [LkTech Motor](task-info/lk-motor.md)
 
 ### Download Configuration File
 
