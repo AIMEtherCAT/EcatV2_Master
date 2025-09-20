@@ -1,6 +1,6 @@
 ## EtherCAT Task Introduction
 
-### DM Motor
+### LkTech Motor
 
 #### Hardware preparation
 
