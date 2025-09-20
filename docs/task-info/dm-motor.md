@@ -44,43 +44,53 @@ box.
 #### Related ROS2 Message Types
 
 ```c
-/* Message type: custom_msgs/msg/ReadDJICAN */
+/* Message type: custom_msgs/msg/ReadDmMotor */
 
 std_msgs/Header header
+uint8 online // 0 or 1
 
-uint16 motor1_ecd // [0, 8191]
-int16 motor1_rpm
-int16 motor1_current
-uint8 motor1_temperature
+uint8 disabled              // 0 or 1
+uint8 enabled               // 0 or 1
+uint8 overvoltage           // 0 or 1
+uint8 undervoltage          // 0 or 1
+uint8 overcurrent           // 0 or 1
+uint8 mos_overtemperature   // 0 or 1
+uint8 rotor_overtemperature // 0 or 1
+uint8 communication_lost    // 0 or 1
+uint8 overload              // 0 or 1
 
-uint16 motor2_ecd // [0, 8191]
-int16 motor2_rpm
-int16 motor2_current
-uint8 motor2_temperature
-
-uint16 motor3_ecd // [0, 8191]
-int16 motor3_rpm
-int16 motor3_current
-uint8 motor3_temperature
-
-uint16 motor4_ecd // [0, 8191]
-int16 motor4_rpm
-int16 motor4_current
-uint8 motor4_temperature
+uint16 ecd          // 14bits
+float32 velocity    // rad/s
+float32 torque      // N·m
+uint8 mos_temperature
+uint8 rotor_temperature
 ```
 
 ```c
-/* Message type: custom_msgs/msg/WriteDJICAN */
+/* Message type: custom_msgs/msg/WriteDmMotorMITControl */
 
-uint8 motor1_enable // 0 or 1
-int16 motor1_cmd    // current for openloop current mode, rpm for speed mode, ecd for position mode
+uint8 enable    // 0 or 1
 
-uint8 motor2_enable s// 0 or 1
-int16 motor2_cmd    // current for openloop current mode, rpm for speed mode, ecd for position mode
+float32 p_des
+float32 v_des
+float32 kp
+float32 kd
+float32 torque
+```
 
-uint8 motor3_enable // 0 or 1
-int16 motor3_cmd    // current for openloop current mode, rpm for speed mode, ecd for position mode
+```c
+/* Message type: custom_msgs/msg/WriteDmMotorPositionControl */
 
-uint8 motor4_enable // 0 or 1
-int16 motor4_cmd    // current for openloop current mode, rpm for speed mode, ecd for position mode
+uint8 enable        // 0 or 1
+
+float32 position    // rad
+float32 speed       // rad/s
+```
+
+```c
+/* Message type: custom_msgs/msg/WriteDmMotorSpeedControl */
+
+uint8 enable        // 0 or 1
+
+float32 speed       // rad/s
 ```
