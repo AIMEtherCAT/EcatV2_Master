@@ -14,7 +14,8 @@ rclcpp::Logger data_logger = rclcpp::get_logger("EthercatNode_DATA");
 rclcpp::Logger wrapper_logger = rclcpp::get_logger("EthercatNode_WRAPPER");
 
 slave_device slave_devices[EC_MAXSLAVE];
-int sdo_size_ptr = 4;
+int sdo_sn_size_ptr = 4;
+int sdo_rev_size_ptr = 3;
 uint16_t sdo_size_write_ptr = 0;
 rclcpp::Time time_curr;
 
@@ -265,10 +266,26 @@ void EthercatNode::datacycle_callback() {
 // ReSharper disable once CppParameterMayBeConst
 int config_ec_slave(ecx_contextt * /*context*/, uint16 slave) {
     try {
-        // read device sn
-        ec_SDOread(slave, 0x1018, 4, FALSE, &sdo_size_ptr, &slave_devices[slave].sn, 0xffff);
-        RCLCPP_INFO(cfg_logger, "Found slave id=%d, sn=%d, eepid=%d, type=%s", slave, slave_devices[slave].sn,
-                    ec_slave[slave].eep_id, node->get_device_name(ec_slave[slave].eep_id).c_str());
+        // read device info
+        sdo_sn_size_ptr = 4;
+        ec_SDOread(slave, 0x1018, 4, FALSE, &sdo_sn_size_ptr, &slave_devices[slave].sn, 0xffff);
+        sdo_rev_size_ptr = 3;
+        ec_SDOread(slave, 0x100A, 0, FALSE, &sdo_rev_size_ptr, &slave_devices[slave].sw_rev_str, 0xffff);
+        slave_devices[slave].sw_rev = atoi(slave_devices[slave].sw_rev_str);
+        RCLCPP_INFO(cfg_logger, "Found slave id=%d, sn=%d, eepid=%d, type=%s, swrev=%d", slave, slave_devices[slave].sn,
+                    ec_slave[slave].eep_id, node->get_device_name(ec_slave[slave].eep_id).c_str(),
+                    slave_devices[slave].sw_rev);
+
+        if (slave_devices[slave].sw_rev < node->get_device_min_sw_rev_requirement(ec_slave[slave].eep_id)) {
+            RCLCPP_ERROR(
+                cfg_logger,
+                "Slave id=%d, sn=%d, swrev=%d, don't meet the requirement of minimum sw rev=%d, please flash the newest firmware.",
+                slave, slave_devices[slave].sn, slave_devices[slave].sw_rev,
+                node->get_device_min_sw_rev_requirement(ec_slave[slave].eep_id));
+            return 0;
+        }
+        slave_devices[slave].sw_rev_check_passed = 1;
+
         // write device sdo len
         sdo_size_write_ptr = get_field_as<uint16_t>(slave_devices[slave].sn, "sdo_len");
         ec_SDOwrite(slave, 0x8000, 0, FALSE, 2, &sdo_size_write_ptr, 0xffff);
@@ -332,6 +349,10 @@ bool EthercatNode::setup_ethercat(const char *ifname) {
     ec_configdc();
 
     for (int slave_idx = 1; slave_idx <= ec_slavecount; slave_idx++) {
+        if (slave_devices[slave_idx].sw_rev_check_passed == 0) {
+            return false;
+        }
+
         // create arg buffer
         slave_devices[slave_idx].arg_buf_len = get_field_as<uint16_t>(slave_devices[slave_idx].sn, "sdo_len");
         slave_devices[slave_idx].arg_buf.resize(slave_devices[slave_idx].arg_buf_len);
@@ -423,9 +444,9 @@ EthercatNode::~EthercatNode() {
 }
 
 void EthercatNode::register_components() {
-    register_module(1, "FlightModule", 16, 40);
-    register_module(2, "MotorModule", 56, 80);
-    register_module(3, "H750UniversalModule", 80, 80);
+    register_module(1, "FlightModule", 16, 40, 001);
+    register_module(2, "MotorModule", 56, 80, 001);
+    register_module(3, "H750UniversalModule", 80, 80, 002);
 
     register_app<DJIRC>();
     register_app<HIPNUC_IMU>();

@@ -211,6 +211,9 @@ private:
 
 struct slave_device {
     ec_slavet *slave = nullptr;
+    char sw_rev_str[4];
+    int sw_rev;
+    uint8_t sw_rev_check_passed = 0;
     uint32_t sn = 0;
     uint8_t device_type = 0;
 
@@ -270,6 +273,11 @@ public:
     std::string
     get_device_name(const uint32 eep_id) {
         return registered_module_names[eep_id];
+    }
+
+    int
+    get_device_min_sw_rev_requirement(const uint32 eep_id) {
+        return registered_module_sw_rev[eep_id];
     }
 
     uint16_t
@@ -344,6 +352,7 @@ public:
     // m2s, s2m
     std::unordered_map<uint32_t, std::pair<uint16_t, uint16_t> > registered_module_buf_lens{};
     std::unordered_map<uint32_t, std::string> registered_module_names{};
+    std::unordered_map<uint32_t, int> registered_module_sw_rev{};
     std::unordered_map<uint32_t, std::unique_ptr<AppDef> > app_registry{};
 
     bool setup_ethercat(const char *);
@@ -354,12 +363,14 @@ private:
     void
     register_module(const uint32_t eep_id, const std::string &module_name,
                     const int master_to_slave_buf_len,
-                    const int slave_to_master_buf_len) {
+                    const int slave_to_master_buf_len,
+                    const int min_sw_rev) {
         RCLCPP_INFO(wrapper_logger, "Registered new module, eepid=%d, name=%s, m2slen=%d, s2mlen=%d", eep_id,
                     module_name.c_str(), master_to_slave_buf_len, slave_to_master_buf_len);
         registered_module_names[eep_id] = module_name;
         registered_module_buf_lens[eep_id] =
                 std::make_pair(master_to_slave_buf_len, slave_to_master_buf_len);
+        registered_module_sw_rev[eep_id] = min_sw_rev;
     }
 
     template<typename AppT>
