@@ -29,7 +29,7 @@
 
 #include "custom_msgs/msg/read_lk_motor.hpp"
 #include "custom_msgs/msg/read_djirc.hpp"
-#include "custom_msgs/msg/read_djican.hpp"
+#include "custom_msgs/msg/read_dji_motor.hpp"
 #include "custom_msgs/msg/write_dshot.hpp"
 #include "custom_msgs/msg/read_sbusrc.hpp"
 #include "std_msgs/msg/float32.hpp"
@@ -44,7 +44,7 @@
 #include "custom_msgs/msg/write_lk_motor_single_round_position_control.hpp"
 #include "custom_msgs/msg/write_lk_motor_single_round_position_control_with_speed_limit.hpp"
 
-#include "custom_msgs/msg/write_djican.hpp"
+#include "custom_msgs/msg/write_dji_motor.hpp"
 #include "custom_msgs/msg/write_vanilla_pwm.hpp"
 #include "custom_msgs/msg/write_external_pwm.hpp"
 #include "custom_msgs/msg/read_ms5837_ba30.hpp"
@@ -69,7 +69,7 @@ using Variant = std::variant<
     rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr,
     rclcpp::Publisher<custom_msgs::msg::ReadLkMotor>::SharedPtr,
     rclcpp::Publisher<custom_msgs::msg::ReadDJIRC>::SharedPtr,
-    rclcpp::Publisher<custom_msgs::msg::ReadDJICAN>::SharedPtr,
+    rclcpp::Publisher<custom_msgs::msg::ReadDJIMotor>::SharedPtr,
     rclcpp::Publisher<custom_msgs::msg::ReadSBUSRC>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteDSHOT>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteDmMotorMITControl>::SharedPtr,
@@ -82,7 +82,7 @@ using Variant = std::variant<
     rclcpp::Subscription<custom_msgs::msg::WriteLkMotorMultiRoundPositionControlWithSpeedLimit>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteLkMotorSingleRoundPositionControl>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteLkMotorSingleRoundPositionControlWithSpeedLimit>::SharedPtr,
-    rclcpp::Subscription<custom_msgs::msg::WriteDJICAN>::SharedPtr,
+    rclcpp::Subscription<custom_msgs::msg::WriteDJIMotor>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteVanillaPWM>::SharedPtr,
     rclcpp::Subscription<custom_msgs::msg::WriteExternalPWM>::SharedPtr,
     rclcpp::Publisher<custom_msgs::msg::ReadMS5837BA30>::SharedPtr,

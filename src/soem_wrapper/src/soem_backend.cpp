@@ -23,7 +23,7 @@ rclcpp::Time time_curr;
 std_msgs::msg::Float32 std_msgs_float32_shared_msg;
 sensor_msgs::msg::Imu sensor_msgs_imu_shared_msg;
 custom_msgs::msg::ReadDJIRC custom_msgs_readdjirc_shared_msg;
-custom_msgs::msg::ReadDJICAN custom_msgs_readdjican_shared_msg;
+custom_msgs::msg::ReadDJIMotor custom_msgs_readdjimotor_shared_msg;
 custom_msgs::msg::ReadLkMotor custom_msgs_readlkmotor_shared_msg;
 custom_msgs::msg::ReadMS5837BA30 custom_msgs_readms5837ba30_shared_msg;
 custom_msgs::msg::ReadADC custom_msgs_readadc_shared_msg;

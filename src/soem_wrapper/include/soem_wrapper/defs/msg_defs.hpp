@@ -125,11 +125,11 @@ struct MsgDef<custom_msgs::msg::WriteLkMotorSingleRoundPositionControlWithSpeedL
 };
 
 template<>
-struct MsgDef<custom_msgs::msg::WriteDJICAN> {
-    static constexpr auto type_enum = "WriteDJICAN";
+struct MsgDef<custom_msgs::msg::WriteDJIMotor> {
+    static constexpr auto type_enum = "WriteDJIMotor";
 
     static void
-    write(const custom_msgs::msg::WriteDJICAN::SharedPtr &msg, uint8_t *buf, int *offset, const std::string &prefix) {
+    write(const custom_msgs::msg::WriteDJIMotor::SharedPtr &msg, uint8_t *buf, int *offset, const std::string &prefix) {
         if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor1_can_id", prefix)) > 0) {
             write_uint8(msg->motor1_enable, buf, offset);
             write_int16(msg->motor1_cmd, buf, offset);

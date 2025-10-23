@@ -10,7 +10,7 @@
 extern std_msgs::msg::Float32 std_msgs_float32_shared_msg;
 extern sensor_msgs::msg::Imu sensor_msgs_imu_shared_msg;
 extern custom_msgs::msg::ReadDJIRC custom_msgs_readdjirc_shared_msg;
-extern custom_msgs::msg::ReadDJICAN custom_msgs_readdjican_shared_msg;
+extern custom_msgs::msg::ReadDJIMotor custom_msgs_readdjimotor_shared_msg;
 extern custom_msgs::msg::ReadLkMotor custom_msgs_readlkmotor_shared_msg;
 extern custom_msgs::msg::ReadMS5837BA30 custom_msgs_readms5837ba30_shared_msg;
 extern custom_msgs::msg::ReadADC custom_msgs_readadc_shared_msg;
@@ -174,43 +174,47 @@ struct DJI_MOTOR {
             }
         }
 
-        node->create_and_insert_publisher<custom_msgs::msg::ReadDJICAN>(prefix);
-        node->create_and_insert_subscriber<custom_msgs::msg::WriteDJICAN>(prefix, slave_id);
+        node->create_and_insert_publisher<custom_msgs::msg::ReadDJIMotor>(prefix);
+        node->create_and_insert_subscriber<custom_msgs::msg::WriteDJIMotor>(prefix, slave_id);
     }
 
     static void
     read(const uint8_t *buf, int *offset, const std::string &prefix) {
-        custom_msgs_readdjican_shared_msg.header.stamp = rclcpp::Clock().now();
+        custom_msgs_readdjimotor_shared_msg.header.stamp = rclcpp::Clock().now();
 
         if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor1_can_id", prefix), 0) > 0) {
-            custom_msgs_readdjican_shared_msg.motor1_ecd = read_uint16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor1_rpm = read_int16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor1_current = read_int16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor1_temperature = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor1_online = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor1_ecd = read_uint16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor1_rpm = read_int16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor1_current = read_int16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor1_temperature = read_uint8(buf, offset);
         }
 
         if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor2_can_id", prefix), 0) > 0) {
-            custom_msgs_readdjican_shared_msg.motor2_ecd = read_uint16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor2_rpm = read_int16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor2_current = read_int16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor2_temperature = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor2_online = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor2_ecd = read_uint16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor2_rpm = read_int16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor2_current = read_int16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor2_temperature = read_uint8(buf, offset);
         }
 
         if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor3_can_id", prefix), 0) > 0) {
-            custom_msgs_readdjican_shared_msg.motor3_ecd = read_uint16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor3_rpm = read_int16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor3_current = read_int16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor3_temperature = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor3_online = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor3_ecd = read_uint16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor3_rpm = read_int16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor3_current = read_int16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor3_temperature = read_uint8(buf, offset);
         }
 
         if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor4_can_id", prefix), 0) > 0) {
-            custom_msgs_readdjican_shared_msg.motor4_ecd = read_uint16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor4_rpm = read_int16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor4_current = read_int16(buf, offset);
-            custom_msgs_readdjican_shared_msg.motor4_temperature = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor4_online = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor4_ecd = read_uint16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor4_rpm = read_int16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor4_current = read_int16(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor4_temperature = read_uint8(buf, offset);
         }
 
-        EthercatNode::publish_msg<custom_msgs::msg::ReadDJICAN>(prefix, custom_msgs_readdjican_shared_msg);
+        EthercatNode::publish_msg<custom_msgs::msg::ReadDJIMotor>(prefix, custom_msgs_readdjimotor_shared_msg);
     }
 };
 
@@ -386,6 +390,7 @@ struct LK_MOTOR {
     read(const uint8_t *buf, int *offset, const std::string &prefix) {
         custom_msgs_readlkmotor_shared_msg.header.stamp = rclcpp::Clock().now();
 
+        custom_msgs_readlkmotor_shared_msg.online = read_uint8(buf, offset);
         custom_msgs_readlkmotor_shared_msg.current = read_int16(buf, offset);
         custom_msgs_readlkmotor_shared_msg.speed = read_int16(buf, offset);
         custom_msgs_readlkmotor_shared_msg.encoder = read_uint16(buf, offset);

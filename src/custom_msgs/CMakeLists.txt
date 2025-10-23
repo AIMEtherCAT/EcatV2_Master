@@ -17,8 +17,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 
     "msg/WriteDSHOT.msg"
 
-    "msg/WriteDJICAN.msg"
-    "msg/ReadDJICAN.msg"
+    "msg/WriteDJIMotor.msg"
+    "msg/ReadDJIMotor.msg"
 
     "msg/WriteLkMotorOpenloopControl.msg"
     "msg/WriteLkMotorTorqueControl.msg"
