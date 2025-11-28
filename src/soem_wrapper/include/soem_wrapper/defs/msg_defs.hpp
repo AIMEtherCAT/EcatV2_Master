@@ -172,35 +172,35 @@ struct MsgDef<custom_msgs::msg::WriteDmMotorMITControl> {
         write_uint8(msg->enable, buf, offset);
         static uint8_t WriteDmMotorMITControl_data[8] = {};
 
-        static uint16_t WriteDmMotorMITControl_pos = float_to_uint(msg->p_des,
+        const uint16_t writeDmMotorMITControl_pos = float_to_uint(msg->p_des,
                                                                    -get_field_as<float>(
                                                                        fmt::format("{}sdowrite_pmax", prefix)),
                                                                    get_field_as<float>(
                                                                        fmt::format("{}sdowrite_pmax", prefix)),
                                                                    16);
-        static uint16_t WriteDmMotorMITControl_vel = float_to_uint(msg->v_des,
+        const uint16_t writeDmMotorMITControl_vel = float_to_uint(msg->v_des,
                                                                    -get_field_as<float>(
                                                                        fmt::format("{}sdowrite_vmax", prefix)),
                                                                    get_field_as<float>(
                                                                        fmt::format("{}sdowrite_vmax", prefix)),
                                                                    12);
-        static uint16_t WriteDmMotorMITControl_tor = float_to_uint(msg->torque,
+        const uint16_t writeDmMotorMITControl_tor = float_to_uint(msg->torque,
                                                                    -get_field_as<float>(
                                                                        fmt::format("{}sdowrite_tmax", prefix)),
                                                                    get_field_as<float>(
                                                                        fmt::format("{}sdowrite_tmax", prefix)),
                                                                    12);
-        static uint16_t WriteDmMotorMITControl_kp = float_to_uint(msg->kp, 0.0, 500.0, 12);
-        static uint16_t WriteDmMotorMITControl_kd = float_to_uint(msg->kd, 0.0, 5.0, 12);
+        const uint16_t writeDmMotorMITControl_kp = float_to_uint(msg->kp, 0.0, 500.0, 12);
+        const uint16_t writeDmMotorMITControl_kd = float_to_uint(msg->kd, 0.0, 5.0, 12);
 
-        WriteDmMotorMITControl_data[0] = WriteDmMotorMITControl_pos >> 8;
-        WriteDmMotorMITControl_data[1] = WriteDmMotorMITControl_pos;
-        WriteDmMotorMITControl_data[2] = WriteDmMotorMITControl_vel >> 4;
-        WriteDmMotorMITControl_data[3] = (WriteDmMotorMITControl_vel & 0xF) << 4 | WriteDmMotorMITControl_kp >> 8;
-        WriteDmMotorMITControl_data[4] = WriteDmMotorMITControl_kp;
-        WriteDmMotorMITControl_data[5] = WriteDmMotorMITControl_kd >> 4;
-        WriteDmMotorMITControl_data[6] = (WriteDmMotorMITControl_kd & 0xF) << 4 | WriteDmMotorMITControl_tor >> 8;
-        WriteDmMotorMITControl_data[7] = WriteDmMotorMITControl_tor;
+        WriteDmMotorMITControl_data[0] = writeDmMotorMITControl_pos >> 8;
+        WriteDmMotorMITControl_data[1] = writeDmMotorMITControl_pos;
+        WriteDmMotorMITControl_data[2] = writeDmMotorMITControl_vel >> 4;
+        WriteDmMotorMITControl_data[3] = (writeDmMotorMITControl_vel & 0xF) << 4 | writeDmMotorMITControl_kp >> 8;
+        WriteDmMotorMITControl_data[4] = writeDmMotorMITControl_kp;
+        WriteDmMotorMITControl_data[5] = writeDmMotorMITControl_kd >> 4;
+        WriteDmMotorMITControl_data[6] = (writeDmMotorMITControl_kd & 0xF) << 4 | writeDmMotorMITControl_tor >> 8;
+        WriteDmMotorMITControl_data[7] = writeDmMotorMITControl_tor;
 
         memcpy(buf + *offset, WriteDmMotorMITControl_data, 8);
         *offset += 8;
