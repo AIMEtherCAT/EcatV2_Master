@@ -263,7 +263,7 @@ struct VANILLA_PWM {
              const std::string &prefix) {
         memcpy(buf + *offset,
                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
-                                  {"tim_id", "pwm_period", "init_value"}),
+                                  {"port_id", "pwm_period", "init_value"}),
                5);
         *offset += 5;
         node->create_and_insert_subscriber<custom_msgs::msg::WriteVanillaPWM>(prefix, slave_id);
