@@ -46,20 +46,36 @@ the arrow on the left side of the rows to show more details and configurations f
 These tasks are currently available, each with an introduction of hardware preparation, configuration items, and related
 ROS2 message type(s):
 
+#### Tested tasks :)
+
+They're tested by various test cases, and should be working fine.
+
 * RCs
   * [DJI RC](task-info/dji-rc.md)
   * [SBUS RC](task-info/sbus-rc.md)
+
 * Sensors
-  * [HIPNUC IMU](task-info/hipnuc-imu-can.md)
-  * [PMU (CAN)](task-info/pmu-can.md)
-  * [MS5837 (30BA)](task-info/ms5837-30ba.md)
-  * [Onboard ADC](task-info/onboard-adc.md)
+  * [HIPNUC IMU (CAN)](task-info/hipnuc-imu-can.md)
+
 * Actuators
-  * [DSHOT](task-info/dshot.md)
+  * [DSHOT600](task-info/dshot.md)
   * [DJI Motor](task-info/dji-motor.md)
-  * [Onboard PWM](task-info/onboard-pwm.md)
-  * [External PWM](task-info/external-pwm.md)
   * [DM Motor](task-info/dm-motor.md)
+  * [Onboard PWM](task-info/onboard-pwm.md)
+
+
+#### Untested tasks :( 
+
+They're probably not working or are not working properly.
+
+Testing is in progress and will be updated.
+
+* Sensors:
+  * [~~MS5837 (30BA)~~ **UNTESTED](task-info/ms5837-30ba.md)
+  * [~~Onboard ADC~~ **UNTESTED](task-info/onboard-adc.md)
+  * [~~PMU (CAN)~~ **UNTESTED](task-info/pmu-can.md)
+* Actuators:
+  * [External PWM](task-info/external-pwm.md)
   * [LkTech Motor](task-info/lk-motor.md)
 
 ### Download Configuration File
@@ -101,5 +117,5 @@ If you want to send a command to any task, publish the corresponding message typ
 
 ### Example
 
-If needed, you can refer to the example tutorial about creating an application that could control a DJI motor in speed
-mode.
+~~If needed, you can refer to the example tutorial about creating an application that could control a DJI motor in speed
+mode.~~ (To be updated)

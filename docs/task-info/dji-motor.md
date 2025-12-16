@@ -11,6 +11,8 @@ please reduce the motor feedback or control frequency.
 
 > **Note:** all motors will be disabled before receiving any command.
 
+Original product information pages can be found [here](https://bbs.robomaster.com/wiki/20204847/817325?source=7).
+
 #### Configuration items
 
 * Control Period
@@ -57,21 +59,33 @@ uint16 motor1_ecd // [0, 8191]
 int16 motor1_rpm
 int16 motor1_current
 uint8 motor1_temperature
+// same as the original definition
+// 0 = ok
+// 2 = The MSC supply voltage is too high (detected only once during power-on self-test)
+// 3 = The three-phase cable connector is not connected to the motor
+// 4 = The signal is lost on the 4-pin position sensor cable connected to the motor
+// 5 = The motor is stalled
+// 6 = Motor calibration failed
+// If multiple warnings or errors occur at the same time, the error code with higher priority (smaller value) will be reported first.
+uint8 motor1_error_code
 
 uint16 motor2_ecd // [0, 8191]
 int16 motor2_rpm
 int16 motor2_current
 uint8 motor2_temperature
+uint8 motor2_error_code
 
 uint16 motor3_ecd // [0, 8191]
 int16 motor3_rpm
 int16 motor3_current
 uint8 motor3_temperature
+uint8 motor3_error_code
 
 uint16 motor4_ecd // [0, 8191]
 int16 motor4_rpm
 int16 motor4_current
 uint8 motor4_temperature
+uint8 motor4_error_code
 ```
 
 ```c

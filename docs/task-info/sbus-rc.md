@@ -19,11 +19,11 @@ You can only change the publisher topic name by inputting a new name in the ``SB
 
 std_msgs/Header header
 
-uint8 online        // 0 or 1
+uint8 online        // 0 or 1, indicating the state of the receiver
 uint16[] channels   // length = 16
 
 uint8 ch17
 uint8 ch18
-uint8 fail_safe     // 0 or 1
-uint8 frame_lost    // 0 or 1
+uint8 fail_safe     // 0 or 1, indicating the state of the controller
+uint8 frame_lost    // 0 or 1, indicating the state of the controller
 ```

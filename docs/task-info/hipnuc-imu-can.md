@@ -1,28 +1,45 @@
 ## EtherCAT Task Introduction
 
-### DJI RC
+### HIPNUC CH0X0 IMU
 
 #### Hardware preparation
 
-Connect your CAN PMU receiver to the ``CAN2`` port of your EtherCAT module. All PMUs using the UAVCAN protocol and
-sending BatteryInfo-type messages should be supported.
+Connect your HIPNUC CH0X0 IMU forwarding board into any ``CAN`` port of your EtherCAT module.
 
-> **Note:** you can only connect **one** PMU into the same CAN network simultaneously.
+This task only supports our own forwarding board, firmware, and introduction can be
+found [here](https://github.com/AIMEtherCAT/hipnucimu).
+
+> **Note:** If you want to connect multiple imu forwarding boards to the same CAN network, you need to change the packet
+> IDs of each. For detailed information, please refer to the repo mentioned above.
 
 #### Configuration items
 
-This task does not have any configuration items.
+* CAN
+  * The CAN port you connected to.
+* Packet1 ID
+  * ID of packet 1
+* Packet2 ID
+  * ID of packet 2
+* Packet3 ID
+  * ID of packet 3
+* Frame name
+  * The `frame_id` in the `header` of the Imu message
 
-You can only change the publisher topic name by inputting a new name in the ``PMU(CAN) Publisher Topic Name`` input box.
+You can change the publisher topic name by inputting a new name in the ``HIPNUC IMU Publisher Topic Name`` input box.
 
 #### Related ROS2 Message Types
 
 ```c
-/* Message type: custom_msgs/msg/ReadCANPMU */
+/* Message type: sensor_msgs/msg/Imu */
 
 std_msgs/Header header
 
-float32 temperature // °C
-float32 voltage     // V
-float32 current     // A
+geometry_msgs/Quaternion orientation
+#float64[9] orientation_covariance // always empty
+
+geometry_msgs/Vector3 angular_velocity  // rad/s
+#float64[9] angular_velocity_covariance // always empty
+
+geometry_msgs/Vector3 linear_acceleration   // m/s^2
+#float64[9] linear_acceleration_covariance  // always empty
 ```

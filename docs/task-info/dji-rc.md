@@ -6,6 +6,8 @@
 
 Connect your DR16 receiver to the ``DBUS`` port of your EtherCAT module.
 
+![dji-rc-labelled.png](../img/dji-rc-labelled.png)
+
 #### Configuration items
 
 This task does not have any configuration items.
@@ -13,6 +15,8 @@ This task does not have any configuration items.
 You can only change the publisher topic name by inputting a new name in the ``DJI RC Publisher Topic Name`` input box.
 
 #### Related ROS2 Message Types
+
+Reference: DJI original product information page [here](https://bbs.robomaster.com/wiki/20204847/814505?source=7).
 
 ```c
 /* Message type: custom_msgs/msg/ReadDJIRC */
@@ -47,8 +51,8 @@ uint8 b     // 0 or 1
 uint8 shift // 0 or 1
 uint8 ctrl  // 0 or 1
 
-int16 mouse_x
-int16 mouse_y
+int16 mouse_x               // [-32768, 32767]
+int16 mouse_y               // [-32768, 32767]
 uint8 mouse_left_clicked    // 0 or 1
 uint8 mouse_right_clicked   // 0 or 1
 ```
