@@ -75,8 +75,8 @@ Testing is in progress and will be updated.
   * [~~Onboard ADC~~ **UNTESTED](task-info/onboard-adc.md)
   * [~~PMU (CAN)~~ **UNTESTED](task-info/pmu-can.md)
 * Actuators:
-  * [External PWM](task-info/external-pwm.md)
-  * [LkTech Motor](task-info/lk-motor.md)
+  * [~~External PWM~~ **UNTESTED](task-info/external-pwm.md)
+  * [~~LkTech Motor~~ **UNTESTED](task-info/lk-motor.md)
 
 ### Download Configuration File
 
