@@ -194,6 +194,7 @@ struct DJI_MOTOR {
             custom_msgs_readdjimotor_shared_msg.motor1_rpm = read_int16(buf, offset);
             custom_msgs_readdjimotor_shared_msg.motor1_current = read_int16(buf, offset);
             custom_msgs_readdjimotor_shared_msg.motor1_temperature = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor1_error_code = read_uint8(buf, offset);
         }
 
         if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor2_can_id", prefix), 0) > 0) {
@@ -202,6 +203,7 @@ struct DJI_MOTOR {
             custom_msgs_readdjimotor_shared_msg.motor2_rpm = read_int16(buf, offset);
             custom_msgs_readdjimotor_shared_msg.motor2_current = read_int16(buf, offset);
             custom_msgs_readdjimotor_shared_msg.motor2_temperature = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor2_error_code = read_uint8(buf, offset);
         }
 
         if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor3_can_id", prefix), 0) > 0) {
@@ -210,6 +212,7 @@ struct DJI_MOTOR {
             custom_msgs_readdjimotor_shared_msg.motor3_rpm = read_int16(buf, offset);
             custom_msgs_readdjimotor_shared_msg.motor3_current = read_int16(buf, offset);
             custom_msgs_readdjimotor_shared_msg.motor3_temperature = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor3_error_code = read_uint8(buf, offset);
         }
 
         if (get_field_as<uint32_t>(fmt::format("{}sdowrite_motor4_can_id", prefix), 0) > 0) {
@@ -218,6 +221,7 @@ struct DJI_MOTOR {
             custom_msgs_readdjimotor_shared_msg.motor4_rpm = read_int16(buf, offset);
             custom_msgs_readdjimotor_shared_msg.motor4_current = read_int16(buf, offset);
             custom_msgs_readdjimotor_shared_msg.motor4_temperature = read_uint8(buf, offset);
+            custom_msgs_readdjimotor_shared_msg.motor4_error_code = read_uint8(buf, offset);
         }
 
         EthercatNode::publish_msg<custom_msgs::msg::ReadDJIMotor>(prefix, custom_msgs_readdjimotor_shared_msg);
