@@ -90,15 +90,21 @@ struct HIPNUC_IMU {
     static constexpr auto type_enum = "HIPNUC_IMU";
 
     static void
-    init_sdo(uint8_t * /*buf*/, int * /*offset*/, const uint32_t & /*sn*/, const uint8_t /*slave_id*/,
+    init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t /*slave_id*/,
              const std::string &prefix) {
+        memcpy(buf + *offset,
+               sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
+                                  {"can_inst", "packet1_id", "packet2_id", "packet3_id"}),
+               13);
+        *offset += 13;
         node->create_and_insert_publisher<sensor_msgs::msg::Imu>(prefix);
     }
 
     static void
     read(const uint8_t *buf, int *offset, const std::string &prefix) {
         sensor_msgs_imu_shared_msg.header.stamp = rclcpp::Clock().now();
-        sensor_msgs_imu_shared_msg.header.frame_id = "imu_link";
+        sensor_msgs_imu_shared_msg.header.frame_id = get_field_as<std::string>(
+            fmt::format("{}sdowrite_frame_name", prefix), "imu_link");
 
         // hipnuc hi92 protocol
         sensor_msgs_imu_shared_msg.orientation.w = 0.0001 * read_int16(buf, offset);
