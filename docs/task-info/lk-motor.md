@@ -18,8 +18,8 @@ please reduce the motor feedback or control frequency.
       forward control commands at this frequency.
 * CAN
     * The CAN port you connected to.
-* CAN Packer ID
-    * The packet ID of the control/feedback frame.
+* Motor Driver ID
+    * The Driver ID of the motor, can be set by the DIP switch or by the LingKong Motor Tool (available [here](http://www.lkmotor.cn/Download.aspx?ClassID=45)).
 * Control Type
     * The control type of motor.
         * Open-loop current (only supported in MS serial motors)
@@ -46,6 +46,9 @@ box.
 /* Message type: custom_msgs/msg/ReadLkMotor */
 
 std_msgs/Header header
+
+uint8 online    // 0 or 1
+uint8 enabled   // 0 or 1
 
 int16 current       // 66/4096 A for MG serial motors, 33/4096 A for MF serial motors, [-1000, 1000] PWR for MS serial motors
 int16 speed         // 1deg/s

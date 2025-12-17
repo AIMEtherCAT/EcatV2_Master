@@ -61,6 +61,7 @@ They're tested by various test cases, and should be working fine.
   * [DSHOT600](task-info/dshot.md)
   * [DJI Motor](task-info/dji-motor.md)
   * [DM Motor](task-info/dm-motor.md)
+  * [LkTech Motor](task-info/lk-motor.md)
   * [Onboard PWM](task-info/onboard-pwm.md)
 
 
@@ -76,7 +77,7 @@ Testing is in progress and will be updated.
   * [~~PMU (CAN)~~ **UNTESTED](task-info/pmu-can.md)
 * Actuators:
   * [~~External PWM~~ **UNTESTED](task-info/external-pwm.md)
-  * [~~LkTech Motor~~ **UNTESTED](task-info/lk-motor.md)
+
 
 ### Download Configuration File
 

@@ -444,9 +444,10 @@ EthercatNode::~EthercatNode() {
 }
 
 void EthercatNode::register_components() {
-    register_module(1, "FlightModule", 16, 40, 001);
-    register_module(2, "MotorModule", 56, 80, 001);
-    register_module(3, "H750UniversalModule", 80, 80, 002);
+    // deprecated
+    // register_module(1, "FlightModule", 16, 40, 001);
+    // register_module(2, "MotorModule", 56, 80, 001);
+    register_module(3, "H750UniversalModule", 80, 80, 005);
 
     register_app<DJIRC>();
     register_app<HIPNUC_IMU>();
