@@ -400,7 +400,9 @@ struct LK_MOTOR {
     read(const uint8_t *buf, int *offset, const std::string &prefix) {
         custom_msgs_readlkmotor_shared_msg.header.stamp = rclcpp::Clock().now();
 
-        custom_msgs_readlkmotor_shared_msg.online = read_uint8(buf, offset);
+        uint8_t state_byte = read_uint8(buf, offset);
+        custom_msgs_readlkmotor_shared_msg.online = state_byte & 0x01;
+        custom_msgs_readlkmotor_shared_msg.enabled = state_byte >> 2 & 0x01;
         custom_msgs_readlkmotor_shared_msg.current = read_int16(buf, offset);
         custom_msgs_readlkmotor_shared_msg.speed = read_int16(buf, offset);
         custom_msgs_readlkmotor_shared_msg.encoder = read_uint16(buf, offset);
