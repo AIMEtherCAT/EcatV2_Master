@@ -215,6 +215,7 @@ struct slave_device {
     int sw_rev;
     uint8_t sw_rev_check_passed = 0;
     uint32_t sn = 0;
+    uint8_t recover_rejected = 0;
     uint8_t device_type = 0;
 
     uint8_t ready = 0;
@@ -240,6 +241,7 @@ struct slave_device {
     uint8_t conf_done = 0;
     // ros2 pub/sub conf done flag
     uint8_t conf_ros_done = 0;
+    uint8_t reconnected_times = 0;
 };
 
 extern slave_device slave_devices[EC_MAXSLAVE];
@@ -441,7 +443,7 @@ private:
     }
 
     static void setup_nic(const std::string &nic_name) {
-        int sock = socket(AF_INET, SOCK_DGRAM, 0);
+        const int sock = socket(AF_INET, SOCK_DGRAM, 0);
         if (sock < 0) {
             perror("socket");
             exit(EXIT_FAILURE);
@@ -484,14 +486,21 @@ private:
 
     void datacycle_callback();
 
+    void state_check_callback() const;
+
     char IOmap[4096]{};
 
     bool pdo_transfer_active = false;
     std::atomic<bool> running_{};
-    std::thread worker_thread_{};
+    std::thread data_thread_{};
+    std::thread checker_thread_{};
 
     uint16_t pdo_offset_for_cb = 0;
     int offset_for_cb = 0;
+
+    int expectedWkc;
+    int wkc;
+    std::atomic<bool> inOperational_{};
 };
 
 extern std::shared_ptr<EthercatNode> node;

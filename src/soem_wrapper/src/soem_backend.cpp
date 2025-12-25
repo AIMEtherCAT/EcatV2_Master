@@ -12,6 +12,7 @@ rclcpp::Logger sys_logger = rclcpp::get_logger("EthercatNode_SYS");
 rclcpp::Logger cfg_logger = rclcpp::get_logger("EthercatNode_CFG");
 rclcpp::Logger data_logger = rclcpp::get_logger("EthercatNode_DATA");
 rclcpp::Logger wrapper_logger = rclcpp::get_logger("EthercatNode_WRAPPER");
+rclcpp::Logger health_checker_logger = rclcpp::get_logger("EthercatNode_HEALTH_CHECKER");
 
 slave_device slave_devices[EC_MAXSLAVE];
 int sdo_sn_size_ptr = 4;
@@ -69,12 +70,14 @@ void EthercatNode::datacycle_callback() {
     uint8_t task_type;
     uint16_t pdo_offset;
     int offset;
+
     bool all_slave_ready = false;
 
+    inOperational_ = true;
     while (running_ && rclcpp::ok()) {
         if (pdo_transfer_active) {
             // recv ecat frame
-            ec_receive_processdata(100);
+            wkc = ec_receive_processdata(100);
             // transfer data from ecat stack into buffer managed by ourselves
             for (slave_idx = 1; slave_idx <= ec_slavecount; slave_idx++) {
                 memcpy(&slave_devices[slave_idx].slave_status, ec_slave[slave_idx].inputs, 1);
@@ -160,7 +163,8 @@ void EthercatNode::datacycle_callback() {
                     slave_devices[slave_idx].arg_sent == 1 &&
                     slave_devices[slave_idx].slave_status == SLAVE_READY) {
                     // write initial value for each app
-                    if (slave_devices[slave_idx].master_status != MASTER_READY) {
+                    if (slave_devices[slave_idx].reconnected_times == 0 && slave_devices[slave_idx].master_status !=
+                        MASTER_READY) {
                         memset(slave_devices[slave_idx].master_to_slave_buf.data(), 0,
                                slave_devices[slave_idx].master_to_slave_buf_len);
 
@@ -258,6 +262,84 @@ void EthercatNode::datacycle_callback() {
     RCLCPP_INFO(this->get_logger(), "DATA thread exiting...");
 }
 
+void EthercatNode::state_check_callback() const {
+    while (running_ && rclcpp::ok()) {
+        if (inOperational_ && (wkc < expectedWkc || ec_group[0].docheckstate)) {
+            RCLCPP_WARN_THROTTLE(health_checker_logger, *get_clock(), 1500,
+                                 "Enter state check, wkc=%d, expected wkc=%d, lastFailed=%d", wkc,
+                                 expectedWkc,
+                                 ec_group[0].docheckstate);
+            ec_group[0].docheckstate = FALSE;
+            ec_readstate();
+
+            for (int slave_idx = 1; slave_idx <= ec_slavecount; slave_idx++) {
+                RCLCPP_WARN_THROTTLE(health_checker_logger, *get_clock(), 1500, "Checking slave idx=%d, state = %d",
+                                     slave_idx,
+                                     ec_slave[slave_idx].state);
+                if (ec_slave[slave_idx].state != EC_STATE_OPERATIONAL) {
+                    ec_group[0].docheckstate = TRUE;
+
+                    if (ec_slave[slave_idx].state == EC_STATE_SAFE_OP && !slave_devices[slave_idx].recover_rejected) {
+                        RCLCPP_INFO(health_checker_logger, "Slave idx=%d back to safe-op, state to op", slave_idx);
+                        slave_devices[slave_idx].arg_sent = 0;
+                        slave_devices[slave_idx].sending_arg_buf_idx = 1;
+                        slave_devices[slave_idx].reconnected_times++;
+                        slave_devices[slave_idx].conf_ros_done = 1;
+
+                        ec_slave[slave_idx].state = EC_STATE_OPERATIONAL;
+                        ec_writestate(slave_idx);
+                        ec_statecheck(slave_idx, EC_STATE_OPERATIONAL, EC_TIMEOUTSTATE);
+                        RCLCPP_INFO(health_checker_logger, "Slave idx=%d back to op, resending sdo", slave_idx);
+                    } else if (ec_slave[slave_idx].state == EC_STATE_INIT) {
+                        // double check state
+                        if (ec_statecheck(slave_idx, EC_STATE_INIT, EC_TIMEOUTMON * 2)) {
+                            if (ec_reconfig_slave(slave_idx, EC_TIMEOUTMON)) {
+                                if (slave_devices[slave_idx].recover_rejected) {
+                                    RCLCPP_ERROR_THROTTLE(health_checker_logger,
+                                                          *get_clock(),
+                                                          1500,
+                                                          "Slave idx=%d connected with different board, recover rejected",
+                                                          slave_idx);
+                                    ec_slave[slave_idx].state = EC_STATE_INIT;
+                                    ec_writestate(slave_idx);
+                                } else {
+                                    ec_slave[slave_idx].islost = FALSE;
+                                    RCLCPP_INFO(health_checker_logger, "Slave idx=%d reconfigured", slave_idx);
+                                }
+                            }
+                            slave_devices[slave_idx].ready = 0;
+                            slave_devices[slave_idx].conf_ros_done = 0;
+                            slave_devices[slave_idx].slave_status = SLAVE_INITIALIZING;
+                        }
+                    } else if (!ec_slave[slave_idx].islost) {
+                        if (ec_slave[slave_idx].state == EC_STATE_NONE) {
+                            ec_slave[slave_idx].islost = TRUE;
+                            slave_devices[slave_idx].ready = 1;
+                            slave_devices[slave_idx].conf_ros_done = 1;
+                            RCLCPP_ERROR(health_checker_logger, "Slave idx=%d lost", slave_idx);
+                        }
+                    }
+                }
+
+                if (ec_slave[slave_idx].islost) {
+                    if (ec_slave[slave_idx].state == EC_STATE_NONE) {
+                        if (ec_recover_slave(slave_idx, EC_TIMEOUTMON)) {
+                            ec_slave[slave_idx].islost = FALSE;
+                            RCLCPP_INFO(health_checker_logger, "Slave idx=%d recovered", slave_idx);
+                        }
+                    } else {
+                        ec_slave[slave_idx].islost = FALSE;
+                        slave_devices[slave_idx].ready = 1;
+                        slave_devices[slave_idx].conf_ros_done = 1;
+                        RCLCPP_INFO(health_checker_logger, "Slave idx=%d found", slave_idx);
+                    }
+                }
+            }
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
 /**
  * slave sdo configuration write func
  * @param slave slave id
@@ -266,15 +348,34 @@ void EthercatNode::datacycle_callback() {
 // ReSharper disable once CppParameterMayBeConst
 int config_ec_slave(ecx_contextt * /*context*/, uint16 slave) {
     try {
+        const uint32_t oldSn = slave_devices[slave].sn;
         // read device info
         sdo_sn_size_ptr = 4;
         ec_SDOread(slave, 0x1018, 4, FALSE, &sdo_sn_size_ptr, &slave_devices[slave].sn, 0xffff);
         sdo_rev_size_ptr = 3;
         ec_SDOread(slave, 0x100A, 0, FALSE, &sdo_rev_size_ptr, &slave_devices[slave].sw_rev_str, 0xffff);
         slave_devices[slave].sw_rev = atoi(slave_devices[slave].sw_rev_str);
-        RCLCPP_INFO(cfg_logger, "Found slave id=%d, sn=%d, eepid=%d, type=%s, swrev=%d", slave, slave_devices[slave].sn,
-                    ec_slave[slave].eep_id, node->get_device_name(ec_slave[slave].eep_id).c_str(),
-                    slave_devices[slave].sw_rev);
+        if (oldSn != 0) {
+            RCLCPP_INFO_THROTTLE(cfg_logger, *node->get_clock(), 1500,
+                                 "Found slave id=%d, sn=%d, eepid=%d, type=%s, swrev=%d", slave,
+                                 slave_devices[slave].sn,
+                                 ec_slave[slave].eep_id, node->get_device_name(ec_slave[slave].eep_id).c_str(),
+                                 slave_devices[slave].sw_rev);
+        } else {
+            RCLCPP_INFO(cfg_logger, "Found slave id=%d, sn=%d, eepid=%d, type=%s, swrev=%d", slave,
+                        slave_devices[slave].sn,
+                        ec_slave[slave].eep_id, node->get_device_name(ec_slave[slave].eep_id).c_str(),
+                        slave_devices[slave].sw_rev);
+        }
+
+        if (oldSn != 0 && oldSn != slave_devices[slave].sn) {
+            RCLCPP_ERROR_THROTTLE(cfg_logger, *node->get_clock(), 1500,
+                                  "Slave idx=%d reconnected with different board, config rejected", slave);
+            slave_devices[slave].sn = oldSn;
+            slave_devices[slave].recover_rejected = 1;
+            return 0;
+        }
+        slave_devices[slave].recover_rejected = 0;
 
         if (slave_devices[slave].sw_rev < node->get_device_min_sw_rev_requirement(ec_slave[slave].eep_id)) {
             RCLCPP_ERROR(
@@ -294,11 +395,13 @@ int config_ec_slave(ecx_contextt * /*context*/, uint16 slave) {
         slave_devices[slave].device_type = ec_slave[slave].eep_id;
         slave_devices[slave].master_status = sdo_size_write_ptr == 0 ? MASTER_READY : MASTER_SENDING_ARGUMENTS;
 
+        slave_devices[slave].master_to_slave_buf.clear();
         slave_devices[slave].master_to_slave_buf.resize(
             node->get_device_master_to_slave_buf_len(ec_slave[slave].eep_id));
         slave_devices[slave].master_to_slave_buf_len = node->get_device_master_to_slave_buf_len(ec_slave[slave].eep_id);
         slave_devices[slave].master_to_slave_buf.clear();
 
+        slave_devices[slave].slave_to_master_buf.clear();
         slave_devices[slave].slave_to_master_buf.resize(
             node->get_device_slave_to_master_buf_len(ec_slave[slave].eep_id));
         slave_devices[slave].slave_to_master_buf_len = node->get_device_slave_to_master_buf_len(ec_slave[slave].eep_id);
@@ -402,6 +505,8 @@ bool EthercatNode::setup_ethercat(const char *ifname) {
     RCLCPP_INFO(this->get_logger(), "Slaves mapped, state to SAFE_OP.");
     ec_statecheck(0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE * 4);
     RCLCPP_INFO(this->get_logger(), "All slaves reached SAFE_OP, state to OP");
+    expectedWkc = ec_group[0].outputsWKC * 2 + ec_group[0].inputsWKC;
+    RCLCPP_INFO(this->get_logger(), "Calculated expected wkc = %d", expectedWkc);
     ec_slave[0].state = EC_STATE_OPERATIONAL;
     ec_send_processdata();
     ec_receive_processdata(EC_TIMEOUTRET);
@@ -419,7 +524,8 @@ bool EthercatNode::setup_ethercat(const char *ifname) {
     if (ec_slave[0].state == EC_STATE_OPERATIONAL) {
         RCLCPP_INFO(this->get_logger(), "Operational state reached for all slaves.");
         pdo_transfer_active = true;
-        worker_thread_ = std::thread(&EthercatNode::datacycle_callback, this);
+        data_thread_ = std::thread(&EthercatNode::datacycle_callback, this);
+        checker_thread_ = std::thread(&EthercatNode::state_check_callback, this);
         return true;
     }
 
@@ -433,8 +539,11 @@ EthercatNode::~EthercatNode() {
     RCLCPP_INFO(this->get_logger(), "Stop data cycle");
     pdo_transfer_active = false;
     running_ = false;
-    if (worker_thread_.joinable()) {
-        worker_thread_.join();
+    if (data_thread_.joinable()) {
+        data_thread_.join();
+    }
+    if (checker_thread_.joinable()) {
+        checker_thread_.join();
     }
 
     RCLCPP_INFO(this->get_logger(), "Request init state for all slaves");
