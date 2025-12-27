@@ -6,6 +6,8 @@ if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif ()
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -g -fno-omit-frame-pointer")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -22,7 +24,24 @@ include_directories(
         include
 )
 
-add_executable(soem_backend src/soem_backend.cpp src/dynamic_data_helper.cpp)
+add_executable(soem_backend
+        src/soem_backend.cpp
+        src/dynamic_data_helper.cpp
+        src/ecat_node.cpp
+
+        src/tasks/dji_motor.cpp
+        src/tasks/dji_rc.cpp
+        src/tasks/dm_motor.cpp
+        src/tasks/dshot.cpp
+        src/tasks/hipnuc_imu_can.cpp
+        src/tasks/lk_motor.cpp
+        src/tasks/onboard_pwm.cpp
+        src/tasks/sbus_rc.cpp
+
+        src/utils/io_utils.cpp
+        src/utils/logger_utils.cpp
+        src/utils/sys_utils.cpp
+)
 
 ament_target_dependencies(soem_backend
         soem rclcpp std_msgs custom_msgs sensor_msgs fmt yaml-cpp

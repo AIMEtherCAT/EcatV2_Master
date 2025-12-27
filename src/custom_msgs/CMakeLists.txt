@@ -29,7 +29,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/WriteLkMotorSingleRoundPositionControlWithSpeedLimit.msg"
     "msg/ReadLkMotor.msg"
 
-    "msg/WriteVanillaPWM.msg"
+    "msg/WriteOnBoardPWM.msg"
     "msg/WriteExternalPWM.msg"
 
     "msg/ReadMS5837BA30.msg"

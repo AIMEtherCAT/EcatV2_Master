@@ -1,17 +1,60 @@
-#ifndef WRAPPER_H
-#define WRAPPER_H
+//
+// Created by hang on 12/26/25.
+//
 
-#include "defs/app_defs.hpp"
-#include "rclcpp/time.hpp"
+#ifndef BUILD_SOEM_WRAPPER_H
+#define BUILD_SOEM_WRAPPER_H
 
-// slave2master status enums
-#define SLAVE_INITIALIZING 1
-#define SLAVE_READY 2
-#define SLAVE_CONFIRM_READY 3
+#include "rclcpp/rclcpp.hpp"
 
-// master2slave status enums
-#define MASTER_REQUEST_REBOOT 1
-#define MASTER_SENDING_ARGUMENTS 2
-#define MASTER_READY 3
+#include "osal.h"
+#include "ethercattype.h"
+#include "nicdrv.h"
+#include "ethercatmain.h"
 
-#endif
+namespace aim::ecat {
+    struct SlaveDeviceT {
+        ec_slavet *slave = nullptr;
+        char sw_rev_str[4];
+        int sw_rev;
+        uint8_t sw_rev_check_passed = 0;
+        uint32_t sn = 0;
+        uint8_t recover_rejected = 0;
+        uint8_t device_type = 0;
+
+        uint8_t ready = 0;
+        uint8_t waiting_for_latency_checking = 0;
+        rclcpp::Time last_packet_time{};
+
+        uint8_t master_status = 0;
+        std::vector<uint8_t> master_to_slave_buf{};
+        // used for connection lost recover
+        std::vector<uint8_t> master_to_slave_buf_backup{};
+        uint16_t master_to_slave_buf_len = 0;
+
+        uint8_t slave_status = 0;
+        std::vector<uint8_t> slave_to_master_buf{};
+        uint16_t slave_to_master_buf_len = 0;
+
+        std::vector<uint8_t> arg_buf{};
+        uint16_t arg_buf_len = 0;
+        int arg_buf_idx = 0;
+
+        uint16_t sending_arg_buf_idx = 1;
+        uint8_t arg_sent = 0;
+
+        // ecat conf done flag
+        uint8_t conf_done = 0;
+        // ros2 pub/sub conf done flag
+        uint8_t conf_ros_done = 0;
+        uint8_t reconnected_times = 0;
+
+        mutable std::mutex mtx;
+    };
+
+    SlaveDeviceT *get_slave_devices();
+
+    int config_ec_slave(ecx_contextt * /*context*/, uint16 slave);
+}
+
+#endif //BUILD_SOEM_WRAPPER_H
