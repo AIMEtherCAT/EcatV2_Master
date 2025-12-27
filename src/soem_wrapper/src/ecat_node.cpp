@@ -24,22 +24,22 @@ namespace aim::ecat {
 
     EthercatNode::EthercatNode() : Node("EthercatNode"), running_(true), exiting_(false), exiting_reset_called_(false) {
         this->declare_parameter<std::string>("interface", "enp2s0");
-        interface = this->get_parameter("interface").as_string();
-        RCLCPP_INFO(*logging::get_sys_logger(), "Using interface: %s", interface.c_str());
+        interface_ = this->get_parameter("interface").as_string();
+        RCLCPP_INFO(*logging::get_sys_logger(), "Using interface: %s", interface_.c_str());
 
         this->declare_parameter<int>("rt_cpu", 6);
-        rt_cpu = this->get_parameter("rt_cpu").as_int(); // NOLINT
-        RCLCPP_INFO(*logging::get_sys_logger(), "Using rt-cpu: %d", rt_cpu);
+        rt_cpu_ = this->get_parameter("rt_cpu").as_int(); // NOLINT
+        RCLCPP_INFO(*logging::get_sys_logger(), "Using rt-cpu: %d", rt_cpu_);
 
         this->declare_parameter<std::string>("non_rt_cpus", "0-5,7-15");
-        non_rt_cpus = this->get_parameter("non_rt_cpus").as_string();
-        RCLCPP_INFO(*logging::get_sys_logger(), "Using non_rt_cpus: %s", non_rt_cpus.c_str());
+        non_rt_cpus_ = this->get_parameter("non_rt_cpus").as_string();
+        RCLCPP_INFO(*logging::get_sys_logger(), "Using non_rt_cpus: %s", non_rt_cpus_.c_str());
 
         this->declare_parameter<std::string>(
             "config_file", "/home/hang/ecat_ws/src/soem_wrapper/config/config.yaml");
-        config_file = this->get_parameter("config_file").as_string();
-        RCLCPP_INFO(*logging::get_cfg_logger(), "Using config_file: %s", config_file.c_str());
-        get_dynamic_data()->load_initial_value_from_config(config_file);
+        config_file_ = this->get_parameter("config_file").as_string();
+        RCLCPP_INFO(*logging::get_cfg_logger(), "Using config_file: %s", config_file_.c_str());
+        get_dynamic_data()->load_initial_value_from_config(config_file_);
         RCLCPP_INFO(*logging::get_cfg_logger(), "Configuration file loaded");
 
         register_components();
@@ -81,7 +81,7 @@ namespace aim::ecat {
         const pthread_t thread_id = pthread_self();
         cpu_set_t cpuset;
         CPU_ZERO(&cpuset);
-        CPU_SET(rt_cpu, &cpuset);
+        CPU_SET(rt_cpu_, &cpuset);
         int result = pthread_setaffinity_np(thread_id, sizeof(cpu_set_t), &cpuset);
         if (result != 0) {
             RCLCPP_ERROR(*logging::get_sys_logger(), "Failed to set CPU affinity");
@@ -99,15 +99,15 @@ namespace aim::ecat {
         }
 
         // move other threads in this cpu
-        utils::sys::move_threads(rt_cpu, non_rt_cpus, interface);
+        utils::sys::move_threads(rt_cpu_, non_rt_cpus_, interface_);
         RCLCPP_INFO(*logging::get_sys_logger(), "move threads finished");
 
         // bind nic irq to same cpu core
-        utils::sys::move_irq(rt_cpu, interface);
+        utils::sys::move_irq(rt_cpu_, interface_);
         RCLCPP_INFO(*logging::get_sys_logger(), "bind irq finished");
 
         // optimize nic settings
-        utils::sys::setup_nic(interface);
+        utils::sys::setup_nic(interface_);
         RCLCPP_INFO(*logging::get_sys_logger(), "setup nic finished");
 
         // pre-define var outside the loop
@@ -126,7 +126,7 @@ namespace aim::ecat {
 
         while (running_) {
             // recv ecat frame
-            wkc = ec_receive_processdata(100);
+            wkc_ = ec_receive_processdata(100);
 
             // transfer data from ecat stack into buffer managed by ourselves
             for (slave_idx = 1; slave_idx <= ec_slavecount; slave_idx++) {
@@ -439,13 +439,13 @@ namespace aim::ecat {
         int offset{};
 
         while (running_ && rclcpp::ok()) {
-            if (in_operational_ && (wkc < expectedWkc || ec_group[0].docheckstate)) {
+            if (in_operational_ && (wkc_ < expectedWkc_ || ec_group[0].docheckstate)) {
                 RCLCPP_WARN_THROTTLE(*logging::get_health_checker_logger(),
                                      *get_clock(),
                                      1500,
                                      "Enter state check, wkc=%d, expected wkc=%d, lastFailed=%d",
-                                     wkc.load(),
-                                     expectedWkc,
+                                     wkc_.load(),
+                                     expectedWkc_,
                                      ec_group[0].docheckstate);
                 ec_group[0].docheckstate = FALSE;
                 ec_readstate();
@@ -615,11 +615,11 @@ namespace aim::ecat {
     }
 
     bool EthercatNode::setup_ecat() {
-        if (!ec_init(interface.c_str())) {
-            RCLCPP_ERROR(*logging::get_sys_logger(), "No socket connection on %s. \n", interface.c_str());
+        if (!ec_init(interface_.c_str())) {
+            RCLCPP_ERROR(*logging::get_sys_logger(), "No socket connection on %s. \n", interface_.c_str());
             return false;
         }
-        RCLCPP_INFO(*logging::get_sys_logger(), "ec_init on %s succeeded.", interface.c_str());
+        RCLCPP_INFO(*logging::get_sys_logger(), "ec_init on %s succeeded.", interface_.c_str());
 
         if (ec_config_init(FALSE) <= 0) {
             RCLCPP_ERROR(*logging::get_cfg_logger(), "No slaves found!");
@@ -645,7 +645,7 @@ namespace aim::ecat {
         }
 
         // conf io map
-        ec_config_map(&IOmap);
+        ec_config_map(&IOmap_);
         ec_configdc();
 
         for (int slave_idx = 1; slave_idx <= ec_slavecount; slave_idx++) {
@@ -722,9 +722,9 @@ namespace aim::ecat {
         ec_statecheck(0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE * 4);
 
         RCLCPP_INFO(*logging::get_cfg_logger(), "All slaves reached SAFE_OP, state to OP");
-        expectedWkc = ec_group[0].outputsWKC * 2 + ec_group[0].inputsWKC;
+        expectedWkc_ = ec_group[0].outputsWKC * 2 + ec_group[0].inputsWKC;
 
-        RCLCPP_INFO(*logging::get_cfg_logger(), "Calculated expected wkc = %d", expectedWkc);
+        RCLCPP_INFO(*logging::get_cfg_logger(), "Calculated expected wkc = %d", expectedWkc_);
         ec_slave[0].state = EC_STATE_OPERATIONAL;
         ec_send_processdata();
         ec_receive_processdata(EC_TIMEOUTRET);
@@ -752,7 +752,7 @@ namespace aim::ecat {
         // deprecated
         // register_module(1, "FlightModule", 16, 40, 001);
         // register_module(2, "MotorModule", 56, 80, 001);
-        register_module(3, "H750UniversalModule", 80, 80, 005);
+        register_module(3, "H750UniversalModule", 80, 80, 006);
 
         register_app(&task::dbus_rc::DBUS_RC::instance());
         register_app(&task::hipnuc_imu::HIPNUC_IMU_CAN::instance());

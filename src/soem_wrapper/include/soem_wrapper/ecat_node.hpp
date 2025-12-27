@@ -94,12 +94,12 @@ namespace aim::ecat {
 
         void state_check_callback() const;
 
-        char IOmap[4096]{};
+        char IOmap_[4096]{};
 
-        std::string interface{};
-        int rt_cpu{};
-        std::string non_rt_cpus{};
-        std::string config_file{};
+        std::string interface_{};
+        int rt_cpu_{};
+        std::string non_rt_cpus_{};
+        std::string config_file_{};
 
         // m2s, s2m
         std::unordered_map<uint32_t, std::pair<uint16_t, uint16_t> > registered_module_buf_lens{};
@@ -113,14 +113,12 @@ namespace aim::ecat {
         std::thread data_thread_{};
         std::thread checker_thread_{};
 
-        int expectedWkc{};
-        std::atomic<int> wkc{};
+        int expectedWkc_{};
+        std::atomic<int> wkc_{};
         std::atomic<bool> in_operational_{};
     };
 
-
     std::shared_ptr<EthercatNode> get_node();
-
 
     void register_node();
 

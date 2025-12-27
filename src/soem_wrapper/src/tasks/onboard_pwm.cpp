@@ -15,8 +15,7 @@ namespace aim::ecat::task {
         auto [sdo_buf, sdo_len] = get_dynamic_data()->build_buf(fmt::format("{}sdowrite_", prefix),
                                                                 {
                                                                     "connection_lost_write_action", "port_id",
-                                                                    "pwm_period",
-                                                                    "init_value"
+                                                                    "pwm_period", "init_value"
                                                                 });
         memcpy(buf + *offset, sdo_buf, sdo_len);
         *offset += sdo_len;
