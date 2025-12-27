@@ -11,7 +11,7 @@ namespace aim::ecat::task::sbus_rc {
     custom_msgs::msg::ReadSBUSRC SBUS_RC::custom_msgs_readsbusrc_shared_msg;
 
     void SBUS_RC::init_sdo(uint8_t * /*buf*/, int * /*offset*/, const uint32_t /*sn*/, const uint8_t /*slave_id*/,
-                          const std::string &prefix) {
+                           const std::string &prefix) {
         get_node()->create_and_insert_publisher<custom_msgs::msg::ReadSBUSRC>(prefix);
         custom_msgs_readsbusrc_shared_msg.channels.resize(16);
     }

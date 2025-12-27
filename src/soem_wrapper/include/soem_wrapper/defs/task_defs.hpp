@@ -74,7 +74,6 @@ namespace aim::ecat::task {
     };
 
     namespace dbus_rc {
-
         class DBUS_RC final : public TaskWrapper {
             static custom_msgs::msg::ReadDJIRC custom_msgs_readdjirc_shared_msg;
 

@@ -14,7 +14,7 @@
 
 namespace aim::ecat {
     using namespace logging;
-    
+
     SlaveDeviceT slave_devices[EC_MAXSLAVE]{};
 
     SlaveDeviceT *get_slave_devices() {
@@ -129,6 +129,9 @@ namespace aim::ecat {
     void run() {
         if (get_node()->setup_ecat()) {
             RCLCPP_INFO(*get_sys_logger(), "Initialization succeeded");
+            rclcpp::on_shutdown([&] {
+                get_node()->on_shutdown();
+            });
             rclcpp::spin(get_node());
         } else {
             RCLCPP_ERROR(*get_sys_logger(), "Initialization failed");

@@ -22,7 +22,7 @@ namespace aim::ecat {
         node.reset();
     }
 
-    EthercatNode::EthercatNode() : Node("EthercatNode"), running_(true) {
+    EthercatNode::EthercatNode() : Node("EthercatNode"), running_(true), exiting_(false), exiting_reset_called_(false) {
         this->declare_parameter<std::string>("interface", "enp2s0");
         interface = this->get_parameter("interface").as_string();
         RCLCPP_INFO(*logging::get_sys_logger(), "Using interface: %s", interface.c_str());
@@ -46,6 +46,21 @@ namespace aim::ecat {
     }
 
     EthercatNode::~EthercatNode() {
+        running_ = false;
+    }
+
+    void EthercatNode::on_shutdown() {
+        RCLCPP_INFO(*logging::get_sys_logger(), "Shutting down");
+
+        exiting_ = true;
+        // wait until reset command sent
+        while (!exiting_reset_called_) {
+            rclcpp::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        // then wait for another 100ms for slaves to reset actuators
+        rclcpp::sleep_for(std::chrono::milliseconds(100));
+
         RCLCPP_INFO(*logging::get_data_logger(), "Stop data cycle");
         running_ = false;
         if (data_thread_.joinable()) {
@@ -109,7 +124,7 @@ namespace aim::ecat {
         // all settings updated, mark data cycle as operational
         in_operational_ = true;
 
-        while (running_ && rclcpp::ok()) {
+        while (running_) {
             // recv ecat frame
             wkc = ec_receive_processdata(100);
 
@@ -214,55 +229,112 @@ namespace aim::ecat {
                     && get_slave_devices()[slave_idx].slave_status == SLAVE_READY) {
                     // write initial value for each app
                     // only write in first initialization
-                    if (get_slave_devices()[slave_idx].reconnected_times == 0
-                        && get_slave_devices()[slave_idx].master_status != MASTER_READY) {
-                        memset(get_slave_devices()[slave_idx].master_to_slave_buf.data(),
-                               0, get_slave_devices()[slave_idx].master_to_slave_buf_len);
+                    if (get_slave_devices()[slave_idx].master_status != MASTER_READY) {
+                        if (get_slave_devices()[slave_idx].reconnected_times == 0) {
+                            memset(get_slave_devices()[slave_idx].master_to_slave_buf.data(),
+                                   0, get_slave_devices()[slave_idx].master_to_slave_buf_len);
+                            // write init value
+                            for (app_idx = 1;
+                                 app_idx <= get_field_as<uint8_t>(*get_dynamic_data(),
+                                                                  get_slave_devices()[slave_idx].sn,
+                                                                  "task_count");
+                                 app_idx++) {
+                                // if a task dont have a subscriber
+                                // it means its not a controllable task
+                                // no need to write any data
+                                if (!get_dynamic_data()->has(
+                                        fmt::format("sn{}_app_{}_sub_inst",
+                                                    get_slave_devices()[slave_idx].sn,
+                                                    app_idx))
+                                ) {
+                                    continue;
+                                }
 
-                        // write init value
-                        for (app_idx = 1;
-                             app_idx <= get_field_as<uint8_t>(*get_dynamic_data(),
-                                                              get_slave_devices()[slave_idx].sn,
-                                                              "task_count");
-                             app_idx++) {
-                            // if a task dont have a subscriber
-                            // it means its not a controllable task
-                            // no need to write any data
-                            if (!get_dynamic_data()->has(
-                                    fmt::format("sn{}_app_{}_sub_inst",
-                                                get_slave_devices()[slave_idx].sn,
-                                                app_idx))
-                            ) {
-                                continue;
+                                // define outside loop to improve perf
+                                // ReSharper disable once CppJoinDeclarationAndAssignment
+                                task_type = get_field_as<uint8_t>(
+                                    *get_dynamic_data(),
+                                    get_slave_devices()[slave_idx].sn,
+                                    app_idx,
+                                    "sdowrite_task_type");
+                                // ReSharper disable once CppJoinDeclarationAndAssignment
+                                pdo_offset = get_field_as<uint16_t>(
+                                    *get_dynamic_data(),
+                                    get_slave_devices()[slave_idx].sn,
+                                    app_idx,
+                                    "pdowrite_offset");
+                                offset = pdo_offset;
+
+                                app_registry.at(task_type)->init_value(
+                                    get_slave_devices()[slave_idx].master_to_slave_buf.data(),
+                                    &offset,
+                                    fmt::format("sn{}_app_{}_", get_slave_devices()[slave_idx].sn, app_idx)
+                                );
                             }
+                        } else {
+                            memcpy(
 
-                            // define outside loop to improve perf
-                            // ReSharper disable once CppJoinDeclarationAndAssignment
-                            task_type = get_field_as<uint8_t>(
-                                *get_dynamic_data(),
-                                get_slave_devices()[slave_idx].sn,
-                                app_idx,
-                                "sdowrite_task_type");
-                            // ReSharper disable once CppJoinDeclarationAndAssignment
-                            pdo_offset = get_field_as<uint16_t>(
-                                *get_dynamic_data(),
-                                get_slave_devices()[slave_idx].sn,
-                                app_idx,
-                                "pdowrite_offset");
-                            offset = pdo_offset;
-
-                            app_registry.at(task_type)->init_value(
                                 get_slave_devices()[slave_idx].master_to_slave_buf.data(),
-                                &offset,
-                                fmt::format("sn{}_app_{}_", get_slave_devices()[slave_idx].sn, app_idx)
+                                get_slave_devices()[slave_idx].master_to_slave_buf_backup.data(),
+                                get_slave_devices()[slave_idx].master_to_slave_buf_len
                             );
+                            RCLCPP_INFO(*logging::get_health_checker_logger(),
+                                        "Slave id=%d master to slave buf recovered", slave_idx);
                         }
 
                         // after this slave will go into normal working state
-                        RCLCPP_INFO(*logging::get_data_logger(), "slave id %d sdo confirmed received", slave_idx);
+                        RCLCPP_INFO(*logging::get_data_logger(), "Slave id=%d sdo confirmed received", slave_idx);
                     }
 
                     get_slave_devices()[slave_idx].master_status = MASTER_READY;
+                }
+
+                // if configuration is finished and exiting
+                // then override all tasks with the init value
+                // thereby resetting all the actuators in the slave
+                if (get_slave_devices()[slave_idx].arg_sent == 1 && exiting_ && !exiting_reset_called_) {
+                    memset(get_slave_devices()[slave_idx].master_to_slave_buf.data(),
+                           0, get_slave_devices()[slave_idx].master_to_slave_buf_len);
+                    // write init value
+                    for (app_idx = 1;
+                         app_idx <= get_field_as<uint8_t>(*get_dynamic_data(),
+                                                          get_slave_devices()[slave_idx].sn,
+                                                          "task_count");
+                         app_idx++) {
+                        // if a task dont have a subscriber
+                        // it means its not a controllable task
+                        // no need to write any data
+                        if (!get_dynamic_data()->has(
+                                fmt::format("sn{}_app_{}_sub_inst",
+                                            get_slave_devices()[slave_idx].sn,
+                                            app_idx))
+                        ) {
+                            continue;
+                        }
+
+                        // define outside loop to improve perf
+                        // ReSharper disable once CppJoinDeclarationAndAssignment
+                        task_type = get_field_as<uint8_t>(
+                            *get_dynamic_data(),
+                            get_slave_devices()[slave_idx].sn,
+                            app_idx,
+                            "sdowrite_task_type");
+                        // ReSharper disable once CppJoinDeclarationAndAssignment
+                        pdo_offset = get_field_as<uint16_t>(
+                            *get_dynamic_data(),
+                            get_slave_devices()[slave_idx].sn,
+                            app_idx,
+                            "pdowrite_offset");
+                        offset = pdo_offset;
+
+                        app_registry.at(task_type)->init_value(
+                            get_slave_devices()[slave_idx].master_to_slave_buf.data(),
+                            &offset,
+                            fmt::format("sn{}_app_{}_", get_slave_devices()[slave_idx].sn, app_idx)
+                        );
+                    }
+                    exiting_reset_called_ = true;
+                    RCLCPP_INFO(*logging::get_data_logger(), "Slave id=%d exit reset command sent", slave_idx);
                 }
 
                 // if slave is ready/working
@@ -508,6 +580,15 @@ namespace aim::ecat {
                                                     app_idx);
                                     }
                                 }
+
+                                get_slave_devices()[slave_idx].master_to_slave_buf_backup.clear();
+                                get_slave_devices()[slave_idx].master_to_slave_buf_backup.resize(
+                                    get_slave_devices()[slave_idx].master_to_slave_buf_len);
+                                memcpy(
+                                    get_slave_devices()[slave_idx].master_to_slave_buf_backup.data(),
+                                    get_slave_devices()[slave_idx].master_to_slave_buf.data(),
+                                    get_slave_devices()[slave_idx].master_to_slave_buf_len
+                                );
                             }
                         }
                     }

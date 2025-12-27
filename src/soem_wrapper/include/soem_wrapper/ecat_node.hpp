@@ -40,6 +40,8 @@ namespace aim::ecat {
 
         bool setup_ecat();
 
+        void on_shutdown();
+
         std::string get_device_name(const uint32_t eep_id) {
             return registered_module_names[eep_id];
         }
@@ -106,6 +108,8 @@ namespace aim::ecat {
         std::unordered_map<uint8_t, task::TaskWrapper *> app_registry{};
 
         std::atomic<bool> running_{};
+        std::atomic<bool> exiting_{};
+        std::atomic<bool> exiting_reset_called_{};
         std::thread data_thread_{};
         std::thread checker_thread_{};
 

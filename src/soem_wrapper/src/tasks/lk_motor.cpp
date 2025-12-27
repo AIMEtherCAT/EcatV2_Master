@@ -14,17 +14,18 @@ namespace aim::ecat::task {
     void LK_MOTOR::init_sdo(uint8_t *buf, int *offset, const uint32_t /*sn*/, const uint8_t slave_id,
                             const std::string &prefix) {
         auto [sdo_buf, sdo_len] = get_dynamic_data()->build_buf(fmt::format("{}sdowrite_", prefix),
-                                                     {
-                                                         "connection_lost_write_action", "control_period",
-                                                         "can_packet_id", "can_inst", "control_type"
-                                                     });
+                                                                {
+                                                                    "connection_lost_write_action", "control_period",
+                                                                    "can_packet_id", "can_inst", "control_type"
+                                                                });
         memcpy(buf + *offset, sdo_buf, sdo_len);
         *offset += sdo_len;
 
         switch (get_field_as<uint8_t>(*get_dynamic_data(),
-            fmt::format("{}sdowrite_control_type", prefix))) {
+                                      fmt::format("{}sdowrite_control_type", prefix))) {
             case LK_CTRL_TYPE_OPENLOOP_CURRENT: {
-                get_node()->create_and_insert_subscriber<custom_msgs::msg::WriteLkMotorOpenloopControl>(prefix, slave_id);
+                get_node()->create_and_insert_subscriber<custom_msgs::msg::WriteLkMotorOpenloopControl>(
+                    prefix, slave_id);
                 break;
             }
 

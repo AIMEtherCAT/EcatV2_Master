@@ -15,7 +15,8 @@ namespace aim::ecat::task {
         static void
         write(const MsgT::SharedPtr & /*msg*/, uint8_t * /*buf*/, int * /*offset*/,
               const std::string &prefix) {
-            RCLCPP_ERROR(*logging::get_data_logger(), "Unsupported MsgT in generic_callback for prefix: %s", prefix.c_str());
+            RCLCPP_ERROR(*logging::get_data_logger(), "Unsupported MsgT in generic_callback for prefix: %s",
+                         prefix.c_str());
         }
     };
 

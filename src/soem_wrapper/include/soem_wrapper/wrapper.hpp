@@ -28,6 +28,8 @@ namespace aim::ecat {
 
         uint8_t master_status = 0;
         std::vector<uint8_t> master_to_slave_buf{};
+        // used for connection lost recover
+        std::vector<uint8_t> master_to_slave_buf_backup{};
         uint16_t master_to_slave_buf_len = 0;
 
         uint8_t slave_status = 0;
