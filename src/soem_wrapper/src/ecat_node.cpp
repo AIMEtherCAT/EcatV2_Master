@@ -344,73 +344,69 @@ namespace aim::ecat {
                     // master will continuous sending an incremental number in get_slave_devices()[slave_idx].master_status
                     // and slave will send it back in get_slave_devices()[slave_idx].slave_status
                     // the travel latency is the recv time - sent time
-                    if (get_slave_devices()[slave_idx].waiting_for_latency_checking == 1) {
-                        if (get_slave_devices()[slave_idx].slave_status == get_slave_devices()[slave_idx].
-                            master_status) {
-                            current_time = rclcpp::Clock().now();
-                            // unit: ms
-                            std_msgs_float32_shared_msg.data =
-                                    static_cast<float>(current_time.seconds()
-                                                       - get_slave_devices()[slave_idx].last_packet_time.seconds())
-                                    * 1000.f;
-                            get_slave_devices()[slave_idx].data_stamp = get_slave_devices()[slave_idx].last_packet_time;
-                            get_slave_devices()[slave_idx].last_packet_time = current_time;
-                            get_slave_devices()[slave_idx].waiting_for_latency_checking = 0;
-
-
-                            // publish latency data
-                            publish_msg<std_msgs::msg::Float32>(
-                                fmt::format("sn{}_latency_", get_slave_devices()[slave_idx].sn),
-                                std_msgs_float32_shared_msg);
-
-                            // data processing
-                            for (app_idx = 1;
-                                 app_idx <= get_field_as<uint8_t>(
-                                     *get_dynamic_data(),
-                                     get_slave_devices()[slave_idx].sn,
-                                     "task_count");
-                                 app_idx++) {
-                                // if a task dont have a publisher
-                                // it means its not a reportable task
-                                // no need to read any data
-                                if (!get_dynamic_data()->has(
-                                    fmt::format("sn{}_app_{}_pub_inst",
-                                                get_slave_devices()[slave_idx].sn,
-                                                app_idx))) {
-                                    continue;
-                                }
-
-                                // define outside loop to improve perf
-                                // ReSharper disable once CppJoinDeclarationAndAssignment
-                                task_type = get_field_as<uint8_t>(
-                                    *get_dynamic_data(),
-                                    get_slave_devices()[slave_idx].sn,
-                                    app_idx,
-                                    "sdowrite_task_type");
-                                // ReSharper disable once CppJoinDeclarationAndAssignment
-                                pdo_offset = get_field_as<uint16_t>(
-                                    *get_dynamic_data(),
-                                    get_slave_devices()[slave_idx].sn,
-                                    app_idx,
-                                    "pdoread_offset");
-                                offset = pdo_offset;
-
-                                app_registry.at(task_type)->read(
-                                    get_slave_devices()[slave_idx].data_stamp,
-                                    get_slave_devices()[slave_idx].slave_to_master_buf.data(),
-                                    &offset,
-                                    fmt::format("sn{}_app_{}_", get_slave_devices()[slave_idx].sn, app_idx)
+                    if (get_slave_devices()[slave_idx].slave_status
+                        == get_slave_devices()[slave_idx].master_status) {
+                        current_time = rclcpp::Clock().now();
+                        // unit: ms
+                        std_msgs_float32_shared_msg.data =
+                                static_cast<float>(
+                                    (current_time - get_slave_devices()[slave_idx].last_packet_time).seconds() *
+                                    1000.f
                                 );
-                            }
-                        }
-                    } else {
+                        get_slave_devices()[slave_idx].data_stamp = get_slave_devices()[slave_idx].last_packet_time;
+                        get_slave_devices()[slave_idx].last_packet_time = current_time;
+
                         // latency calculation number increments here
                         if (get_slave_devices()[slave_idx].master_status >= 250) {
                             get_slave_devices()[slave_idx].master_status = MASTER_READY + 2;
                         } else {
                             get_slave_devices()[slave_idx].master_status++;
                         }
-                        get_slave_devices()[slave_idx].waiting_for_latency_checking = 1;
+
+                        // publish latency data
+                        publish_msg<std_msgs::msg::Float32>(
+                            fmt::format("sn{}_latency_", get_slave_devices()[slave_idx].sn),
+                            std_msgs_float32_shared_msg);
+
+                        // data processing
+                        for (app_idx = 1;
+                             app_idx <= get_field_as<uint8_t>(
+                                 *get_dynamic_data(),
+                                 get_slave_devices()[slave_idx].sn,
+                                 "task_count");
+                             app_idx++) {
+                            // if a task dont have a publisher
+                            // it means its not a reportable task
+                            // no need to read any data
+                            if (!get_dynamic_data()->has(
+                                fmt::format("sn{}_app_{}_pub_inst",
+                                            get_slave_devices()[slave_idx].sn,
+                                            app_idx))) {
+                                continue;
+                            }
+
+                            // define outside loop to improve perf
+                            // ReSharper disable once CppJoinDeclarationAndAssignment
+                            task_type = get_field_as<uint8_t>(
+                                *get_dynamic_data(),
+                                get_slave_devices()[slave_idx].sn,
+                                app_idx,
+                                "sdowrite_task_type");
+                            // ReSharper disable once CppJoinDeclarationAndAssignment
+                            pdo_offset = get_field_as<uint16_t>(
+                                *get_dynamic_data(),
+                                get_slave_devices()[slave_idx].sn,
+                                app_idx,
+                                "pdoread_offset");
+                            offset = pdo_offset;
+
+                            app_registry.at(task_type)->read(
+                                get_slave_devices()[slave_idx].data_stamp,
+                                get_slave_devices()[slave_idx].slave_to_master_buf.data(),
+                                &offset,
+                                fmt::format("sn{}_app_{}_", get_slave_devices()[slave_idx].sn, app_idx)
+                            );
+                        }
                     }
                 }
             }

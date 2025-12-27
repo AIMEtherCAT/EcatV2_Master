@@ -23,7 +23,6 @@ namespace aim::ecat {
         uint8_t device_type = 0;
 
         uint8_t ready = 0;
-        uint8_t waiting_for_latency_checking = 0;
         rclcpp::Time last_packet_time{};
 
         uint8_t master_status = 0;
