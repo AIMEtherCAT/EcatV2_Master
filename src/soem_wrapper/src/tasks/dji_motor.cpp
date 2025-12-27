@@ -117,8 +117,8 @@ namespace aim::ecat::task {
         write_int16(0, buf, offset);
     }
 
-    void DJI_MOTOR::read(const uint8_t *buf, int *offset, const std::string &prefix) {
-        custom_msgs_readdjimotor_shared_msg.header.stamp = rclcpp::Clock().now();
+    void DJI_MOTOR::read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) {
+        custom_msgs_readdjimotor_shared_msg.header.stamp = stamp;
 
         if (get_field_as<uint32_t>(*get_dynamic_data(),
                                    fmt::format("{}sdowrite_motor1_can_id", prefix), 0) > 0) {

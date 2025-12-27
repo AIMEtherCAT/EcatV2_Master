@@ -83,8 +83,8 @@ namespace aim::ecat::task {
         return static_cast<float>(x_int) * span / static_cast<float>((1 << bits) - 1) + offset;
     }
 
-    void DM_MOTOR::read(const uint8_t *buf, int *offset, const std::string &prefix) { // NOLINT
-        custom_msgs_readdmmotor_shared_msg.header.stamp = rclcpp::Clock().now();
+    void DM_MOTOR::read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) { // NOLINT
+        custom_msgs_readdmmotor_shared_msg.header.stamp = stamp;
 
         custom_msgs_readdmmotor_shared_msg.disabled = 0;
         custom_msgs_readdmmotor_shared_msg.enabled = 0;

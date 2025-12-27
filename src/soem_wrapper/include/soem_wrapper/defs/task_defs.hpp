@@ -58,7 +58,7 @@ namespace aim::ecat::task {
                          prefix.c_str());
         }
 
-        virtual void read(const uint8_t */* buf */, int */* offset */, const std::string &prefix) {
+        virtual void read(const rclcpp::Time &/* stamp */, const uint8_t */* buf */, int */* offset */, const std::string &prefix) {
             RCLCPP_ERROR(*logging::get_data_logger(),
                          "read was not overridden and got called for the task: %s, prefix: %s",
                          get_type_name().c_str(),
@@ -102,7 +102,7 @@ namespace aim::ecat::task {
 
             void publish_empty_message(const std::string &prefix) override;
 
-            void read(const uint8_t *buf, int *offset, const std::string &prefix) override;
+            void read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) override;
         };
     }
 
@@ -135,7 +135,7 @@ namespace aim::ecat::task {
 
             void publish_empty_message(const std::string &prefix) override;
 
-            void read(const uint8_t *buf, int *offset, const std::string &prefix) override;
+            void read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) override;
         };
     }
 
@@ -174,7 +174,7 @@ namespace aim::ecat::task {
 
             void init_value(uint8_t *buf, int *offset, const std::string &/* prefix */) override;
 
-            void read(const uint8_t *buf, int *offset, const std::string &prefix) override;
+            void read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) override;
         };
     }
 
@@ -338,7 +338,7 @@ namespace aim::ecat::task {
 
             void publish_empty_message(const std::string &prefix) override;
 
-            void read(const uint8_t *buf, int *offset, const std::string &prefix) override;
+            void read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) override;
 
             void init_value(uint8_t *buf, int *offset, const std::string &/* prefix */) override;
         };
@@ -429,7 +429,7 @@ namespace aim::ecat::task {
 
             void publish_empty_message(const std::string &prefix) override;
 
-            void read(const uint8_t *buf, int *offset, const std::string &prefix) override;
+            void read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) override;
         };
     }
 
@@ -466,7 +466,7 @@ namespace aim::ecat::task {
 
             void publish_empty_message(const std::string &prefix) override;
 
-            void read(const uint8_t *buf, int *offset, const std::string &prefix) override;
+            void read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) override;
 
             void init_value(uint8_t *buf, int *offset, const std::string &/* prefix */) override;
         };

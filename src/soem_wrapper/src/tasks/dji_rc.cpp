@@ -57,8 +57,8 @@ namespace aim::ecat::task::dbus_rc {
         return target_spd / 660.0f;
     }
 
-    void DBUS_RC::read(const uint8_t *buf, int *offset, const std::string &prefix) { // NOLINT
-        custom_msgs_readdjirc_shared_msg.header.stamp = rclcpp::Clock().now();
+    void DBUS_RC::read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) { // NOLINT
+        custom_msgs_readdjirc_shared_msg.header.stamp = stamp;
 
         if (buf[*offset + 18]) {
             // channel

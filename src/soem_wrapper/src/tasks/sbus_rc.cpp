@@ -32,8 +32,8 @@ namespace aim::ecat::task::sbus_rc {
         EthercatNode::publish_msg<custom_msgs::msg::ReadSBUSRC>(prefix, custom_msgs_readsbusrc_shared_msg);
     }
 
-    void SBUS_RC::read(const uint8_t *buf, int *offset, const std::string &prefix) { // NOLINT
-        custom_msgs_readsbusrc_shared_msg.header.stamp = rclcpp::Clock().now();
+    void SBUS_RC::read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) { // NOLINT
+        custom_msgs_readsbusrc_shared_msg.header.stamp = stamp;
 
         if (buf[*offset + 23]) {
             custom_msgs_readsbusrc_shared_msg.channels[0] = (buf[*offset + 0] | buf[*offset + 1] << 8) & 0x07FF;

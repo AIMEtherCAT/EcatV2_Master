@@ -16,7 +16,7 @@ namespace aim::ecat {
     struct SlaveDeviceT {
         ec_slavet *slave = nullptr;
         char sw_rev_str[4];
-        int sw_rev;
+        int sw_rev = 0;
         uint8_t sw_rev_check_passed = 0;
         uint32_t sn = 0;
         uint8_t recover_rejected = 0;
@@ -48,6 +48,8 @@ namespace aim::ecat {
         // ros2 pub/sub conf done flag
         uint8_t conf_ros_done = 0;
         uint8_t reconnected_times = 0;
+
+        rclcpp::Time data_stamp{};
 
         mutable std::mutex mtx;
     };

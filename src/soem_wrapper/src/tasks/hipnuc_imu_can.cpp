@@ -43,8 +43,8 @@ namespace aim::ecat::task::hipnuc_imu {
         EthercatNode::publish_msg<sensor_msgs::msg::Imu>(prefix, sensor_msgs_imu_shared_msg);
     }
 
-    void HIPNUC_IMU_CAN::read(const uint8_t *buf, int *offset, const std::string &prefix) {
-        sensor_msgs_imu_shared_msg.header.stamp = rclcpp::Clock().now();
+    void HIPNUC_IMU_CAN::read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) {
+        sensor_msgs_imu_shared_msg.header.stamp = stamp;
         sensor_msgs_imu_shared_msg.header.frame_id = get_field_as<std::string>(
             *get_dynamic_data(),
             fmt::format("{}conf_frame_name", prefix),

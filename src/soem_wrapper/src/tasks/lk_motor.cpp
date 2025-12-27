@@ -85,8 +85,8 @@ namespace aim::ecat::task {
         EthercatNode::publish_msg<custom_msgs::msg::ReadLkMotor>(prefix, custom_msgs_readlkmotor_shared_msg);
     }
 
-    void LK_MOTOR::read(const uint8_t *buf, int *offset, const std::string &prefix) {
-        custom_msgs_readlkmotor_shared_msg.header.stamp = rclcpp::Clock().now();
+    void LK_MOTOR::read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) {
+        custom_msgs_readlkmotor_shared_msg.header.stamp = stamp;
 
         const uint8_t state_byte = read_uint8(buf, offset);
         custom_msgs_readlkmotor_shared_msg.online = state_byte & 0x01;
