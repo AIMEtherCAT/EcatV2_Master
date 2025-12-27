@@ -1,6 +1,6 @@
 ## EtherCAT Task Introduction
 
-### DJI RC
+### PMU (UAVCAN)
 
 #### Hardware preparation
 
