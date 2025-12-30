@@ -58,7 +58,7 @@ The `tools/` directory contains useful utilities provided by SOEM:
 
 ## Additional Info
 
-* EtherCAT currently running in `Free-run/SM sync` mode.
+* EtherCAT currently running in `Free-run` mode.
 
 * ROS2 Topic QOS is `Sensor Data QoS`
     * History: Keep last,
