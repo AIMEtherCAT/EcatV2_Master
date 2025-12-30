@@ -4,8 +4,10 @@
     <name>soem</name>
     <version>1.4.0</version>
     <description>SOEM</description>
-    <maintainer email="scyhx9@nottingham.edu.cn">hang</maintainer>
+
+    <maintainer email="sales@rt-labs.com">Open EtherCAT Society</maintainer>
     <license>GNU General Public License version 2</license>
+    <url type="website">https://github.com/OpenEtherCATsociety/SOEM</url>
 
     <buildtool_depend>ament_cmake</buildtool_depend>
 
