@@ -207,20 +207,25 @@ namespace aim::ecat {
                     *slave->get_master_status_ptr() = MASTER_READY;
                 }
 
-                // if configuration is finished and exiting
-                // then override all tasks with the init value
-                // thereby resetting all the actuators in the slave
-                if (slave->is_arg_sent() && exiting_ && !exiting_reset_called_) {
-                    slave->write_init_values();
-                    exiting_reset_called_ = true;
-                    RCLCPP_INFO(*logging::get_data_logger(), "Slave id=%d exit reset command sent", slave->get_index());
-                }
-
                 // if slave is ready/working
                 if (slave->is_ready()) {
                     current_time = rclcpp::Clock().now();
                     slave->process_pdo(current_time);
                 }
+            }
+
+            // if configuration is finished and exiting
+            // then override all tasks with the init value
+            // thereby resetting all the actuators in the slave
+            if (exiting_ && !exiting_reset_called_) {
+                for (const auto &slave: get_slave_devices()) {
+                    if (slave->is_arg_sent()) {
+                        slave->write_init_values();
+                        RCLCPP_INFO(*logging::get_data_logger(), "Slave id=%d exit reset command sent",
+                                    slave->get_index());
+                    }
+                }
+                exiting_reset_called_ = true;
             }
 
             // transfer pdo data from buffer managed by ourselves info ecat stack
