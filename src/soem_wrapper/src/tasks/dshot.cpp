@@ -2,43 +2,54 @@
 // Created by hang on 12/26/25.
 //
 #include "soem_wrapper/ecat_node.hpp"
-#include "soem_wrapper/defs/msg_defs.hpp"
+#include "soem_wrapper/task_defs.hpp"
+#include "soem_wrapper/wrapper.hpp"
+#include "soem_wrapper/utils/config_utils.hpp"
+#include "soem_wrapper/utils/io_utils.hpp"
 
 namespace aim::ecat::task {
-    using namespace aim::io::little_endian;
-    using namespace utils::dynamic_data;
-    using namespace dshot;
+    using namespace io::little_endian;
+    using namespace utils::config;
+    using namespace pwm;
 
-    void DSHOT::init_sdo(uint8_t *buf, int *offset, const uint32_t /*sn*/, const uint8_t slave_id,
-                         const std::string &prefix) {
-        auto [sdo_buf, sdo_len] = get_dynamic_data()->build_buf(fmt::format("{}sdowrite_", prefix),
-                                                                {
-                                                                    "connection_lost_write_action", "dshot_id",
-                                                                    "init_value"
-                                                                });
+    void DSHOT::init_sdo(uint8_t *buf, int *offset, const uint16_t slave_id, const std::string &prefix) {
+        auto [sdo_buf, sdo_len] = get_configuration_data()->build_buf(fmt::format("{}sdowrite_", prefix),
+                                                                      {
+                                                                          "connection_lost_write_action", "dshot_id",
+                                                                          "init_value"
+                                                                      });
         memcpy(buf + *offset, sdo_buf, sdo_len);
         *offset += sdo_len;
-        get_node()->create_and_insert_subscriber<custom_msgs::msg::WriteDSHOT>(prefix, slave_id);
+
+        load_slave_info(slave_id, prefix);
+
+        init_value_ = get_field_as<uint16_t>(*get_configuration_data(),
+                                             fmt::format("{}sdowrite_init_value", prefix));
+
+        subscriber_ = get_node()->create_subscription<custom_msgs::msg::WriteDSHOT>(
+            get_field_as<std::string>(
+                *get_configuration_data(),
+                fmt::format("{}sub_topic", prefix)),
+            rclcpp::SensorDataQoS(),
+            std::bind(&DSHOT::on_command, this, std::placeholders::_1)
+        );
     }
 
-    void DSHOT::init_value(uint8_t *buf, int *offset, const std::string &prefix) {
-        const uint16_t init_value = get_field_as<uint16_t>(*get_dynamic_data(),
-                                                           fmt::format("{}sdowrite_init_value", prefix));
+    void DSHOT::init_value() {
+        int offset = pdowrite_offset_;
+
         for (int i = 1; i <= 4; i++) {
-            RCLCPP_INFO(*logging::get_cfg_logger(), "prefix=%s will write init value=%d at m2s buf idx=%d",
-                        prefix.c_str(),
-                        init_value,
-                        *offset);
-            write_uint16(init_value, buf, offset);
+            write_uint16(init_value_, slave_device_->get_master_to_slave_buf().data(), &offset);
         }
     }
 
-    void MsgDef<custom_msgs::msg::WriteDSHOT>::write(
-        const custom_msgs::msg::WriteDSHOT::SharedPtr &msg, uint8_t *buf, int *offset,
-        const std::string & /* prefix */) {
-        write_uint16(msg->channel1, buf, offset);
-        write_uint16(msg->channel2, buf, offset);
-        write_uint16(msg->channel3, buf, offset);
-        write_uint16(msg->channel4, buf, offset);
+    void DSHOT::on_command(const custom_msgs::msg::WriteDSHOT::SharedPtr msg) const {
+        std::lock_guard lock(slave_device_->mtx_);
+        int offset = pdowrite_offset_;
+
+        write_uint16(msg->channel1, slave_device_->get_master_to_slave_buf().data(), &offset);
+        write_uint16(msg->channel2, slave_device_->get_master_to_slave_buf().data(), &offset);
+        write_uint16(msg->channel3, slave_device_->get_master_to_slave_buf().data(), &offset);
+        write_uint16(msg->channel4, slave_device_->get_master_to_slave_buf().data(), &offset);
     }
 }

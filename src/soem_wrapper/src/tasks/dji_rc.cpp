@@ -2,19 +2,30 @@
 // Created by hang on 12/26/25.
 //
 #include "soem_wrapper/ecat_node.hpp"
-#include "soem_wrapper/defs/msg_defs.hpp"
+#include "soem_wrapper/task_defs.hpp"
+#include "soem_wrapper/wrapper.hpp"
+#include "soem_wrapper/utils/config_utils.hpp"
+#include "soem_wrapper/utils/io_utils.hpp"
 
-namespace aim::ecat::task::dbus_rc {
-    using namespace aim::io::little_endian;
+namespace aim::ecat::task {
+    using namespace io::little_endian;
+    using namespace utils::config;
+    using namespace dbus_rc;
 
     custom_msgs::msg::ReadDJIRC DBUS_RC::custom_msgs_readdjirc_shared_msg;
 
-    void DBUS_RC::init_sdo(uint8_t * /*buf*/, int * /*offset*/, const uint32_t /*sn*/, const uint8_t /*slave_id*/,
-                           const std::string &prefix) {
-        get_node()->create_and_insert_publisher<custom_msgs::msg::ReadDJIRC>(prefix);
+    void DBUS_RC::init_sdo(uint8_t * /*buf*/, int * /*offset*/, const uint16_t slave_id, const std::string &prefix) {
+        load_slave_info(slave_id, prefix);
+
+        publisher_ = get_node()->create_publisher<custom_msgs::msg::ReadDJIRC>(
+            get_field_as<std::string>(
+                *get_configuration_data(),
+                fmt::format("{}pub_topic", prefix)),
+            rclcpp::SensorDataQoS()
+        );
     }
 
-    void DBUS_RC::publish_empty_message(const std::string &prefix) {
+    void DBUS_RC::publish_empty_message() {
         custom_msgs_readdjirc_shared_msg.header.stamp = rclcpp::Clock().now();
 
         custom_msgs_readdjirc_shared_msg.right_x = 0;
@@ -46,7 +57,7 @@ namespace aim::ecat::task::dbus_rc {
         custom_msgs_readdjirc_shared_msg.b = 0;
 
         custom_msgs_readdjirc_shared_msg.online = 0;
-        EthercatNode::publish_msg<custom_msgs::msg::ReadDJIRC>(prefix, custom_msgs_readdjirc_shared_msg);
+        publisher_->publish(custom_msgs_readdjirc_shared_msg);
     }
 
     static float get_percentage(const uint16_t raw_data) {
@@ -57,34 +68,50 @@ namespace aim::ecat::task::dbus_rc {
         return target_spd / 660.0f;
     }
 
-    void DBUS_RC::read(const rclcpp::Time &stamp, const uint8_t *buf, int *offset, const std::string &prefix) { // NOLINT
-        custom_msgs_readdjirc_shared_msg.header.stamp = stamp;
+    void DBUS_RC::read() {
+        custom_msgs_readdjirc_shared_msg.header.stamp = slave_device_->get_current_data_stamp();
 
-        if (buf[*offset + 18]) {
+        if (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 18]) {
             // channel
             custom_msgs_readdjirc_shared_msg.right_x = get_percentage(
-                (buf[*offset + 0] | buf[*offset + 1] << 8) & 0x07ff);
+                (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 0] | slave_device_->
+                 get_slave_to_master_buf()[pdoread_offset_ + 1] << 8) & 0x07ff);
             custom_msgs_readdjirc_shared_msg.right_y = get_percentage(
-                (buf[*offset + 1] >> 3 | buf[*offset + 2] << 5) & 0x07ff);
+                (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 1] >> 3 | slave_device_->
+                 get_slave_to_master_buf()[pdoread_offset_ + 2] << 5) & 0x07ff);
             custom_msgs_readdjirc_shared_msg.left_x = get_percentage(
-                (buf[*offset + 2] >> 6 | buf[*offset + 3] << 2 | buf[*offset + 4] << 10) & 0x07ff);
+                (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 2] >> 6 | slave_device_->
+                 get_slave_to_master_buf()[pdoread_offset_ + 3] << 2 | slave_device_->get_slave_to_master_buf()[
+                     pdoread_offset_ + 4] << 10) & 0x07ff);
             custom_msgs_readdjirc_shared_msg.left_y = get_percentage(
-                (buf[*offset + 4] >> 1 | buf[*offset + 5] << 7) & 0x07ff);
+                (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 4] >> 1 | slave_device_->
+                 get_slave_to_master_buf()[pdoread_offset_ + 5] << 7) & 0x07ff);
             custom_msgs_readdjirc_shared_msg.dial = get_percentage(
-                (buf[*offset + 16] | buf[*offset + 17] << 8) & 0x07ff);
+                (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 16] | slave_device_->
+                 get_slave_to_master_buf()[pdoread_offset_ + 17] << 8) & 0x07ff);
 
             // switcher
-            custom_msgs_readdjirc_shared_msg.right_switch = buf[*offset + 5] >> 4 & 0x03;
-            custom_msgs_readdjirc_shared_msg.left_switch = buf[*offset + 5] >> 6 & 0x03;
+            custom_msgs_readdjirc_shared_msg.right_switch =
+                    slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 5] >> 4 & 0x03;
+            custom_msgs_readdjirc_shared_msg.left_switch =
+                    slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 5] >> 6 & 0x03;
 
             // mouse
-            custom_msgs_readdjirc_shared_msg.mouse_x = static_cast<int16_t>(buf[*offset + 6] | buf[*offset + 7] << 8);
-            custom_msgs_readdjirc_shared_msg.mouse_y = static_cast<int16_t>(buf[*offset + 8] | buf[*offset + 9] << 8);
-            custom_msgs_readdjirc_shared_msg.mouse_left_clicked = buf[*offset + 12];
-            custom_msgs_readdjirc_shared_msg.mouse_right_clicked = buf[*offset + 13];
+            custom_msgs_readdjirc_shared_msg.mouse_x = static_cast<int16_t>(
+                slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 6] | slave_device_->get_slave_to_master_buf()
+                [pdoread_offset_ + 7] << 8);
+            custom_msgs_readdjirc_shared_msg.mouse_y = static_cast<int16_t>(
+                slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 8] | slave_device_->get_slave_to_master_buf()
+                [pdoread_offset_ + 9] << 8);
+            custom_msgs_readdjirc_shared_msg.mouse_left_clicked = slave_device_->get_slave_to_master_buf()[
+                pdoread_offset_ + 12];
+            custom_msgs_readdjirc_shared_msg.mouse_right_clicked = slave_device_->get_slave_to_master_buf()[
+                pdoread_offset_ + 13];
 
             // keyboard
-            const uint16_t key_value = static_cast<uint16_t>(buf[*offset + 14] | buf[*offset + 15] << 8);
+            const uint16_t key_value = static_cast<uint16_t>(
+                slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 14] | slave_device_->
+                get_slave_to_master_buf()[pdoread_offset_ + 15] << 8);
             custom_msgs_readdjirc_shared_msg.w = key_value >> 0 & 0x01;
             custom_msgs_readdjirc_shared_msg.s = key_value >> 1 & 0x01;
             custom_msgs_readdjirc_shared_msg.a = key_value >> 2 & 0x01;
@@ -107,6 +134,6 @@ namespace aim::ecat::task::dbus_rc {
             custom_msgs_readdjirc_shared_msg.online = 0;
         }
 
-        EthercatNode::publish_msg<custom_msgs::msg::ReadDJIRC>(prefix, custom_msgs_readdjirc_shared_msg);
+        publisher_->publish(custom_msgs_readdjirc_shared_msg);
     }
 }

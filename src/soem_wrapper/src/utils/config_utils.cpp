@@ -1,24 +1,26 @@
 // ReSharper disable CppCStyleCast
-#include "soem_wrapper/dynamic_data_helper.hpp"
+#include "soem_wrapper/utils/config_utils.hpp"
 #include "soem_wrapper/utils/logger_utils.hpp"
+#include "soem_wrapper/utils/io_utils.hpp"
 
-namespace aim::utils::dynamic_data {
+namespace aim::utils::config {
     using namespace ecat::logging;
+    using namespace io::little_endian;
 
-    DynamicStruct dynamic_data{};
+    ConfigurationParser configuration_data{};
 
-    DynamicStruct *get_dynamic_data() {
-        return &dynamic_data;
+    ConfigurationParser *get_configuration_data() {
+        return &configuration_data;
     }
 
-    DynamicStruct::DynamicStruct(std::initializer_list<std::pair<std::string, Variant> > init) {
+    ConfigurationParser::ConfigurationParser(std::initializer_list<std::pair<std::string, Variant> > init) {
         for (const auto &[key, value]: init) {
             fields_[key] = value;
         }
         memset(temp_buf_, 0, 1024);
     }
 
-    void DynamicStruct::parse_map(const std::string &path, const YAML::Node &node) {
+    void ConfigurationParser::parse_map(const std::string &path, const YAML::Node &node) {
         for (const auto &kv: node) {
             auto key = kv.first.as<std::string>();
             if (const YAML::Node &val = kv.second; val.IsScalar()) {
@@ -70,7 +72,7 @@ namespace aim::utils::dynamic_data {
         }
     }
 
-    void DynamicStruct::load_initial_value_from_config(const std::string &filepath) {
+    void ConfigurationParser::load_initial_value_from_config(const std::string &filepath) {
         if (const YAML::Node root = YAML::LoadFile(filepath); root["slaves"] && root["slaves"].IsSequence()) {
             for (YAML::Node slaves = root["slaves"]; auto &&slave: slaves) {
                 if (slave.IsMap()) {
@@ -82,22 +84,22 @@ namespace aim::utils::dynamic_data {
         }
     }
 
-    void DynamicStruct::set(const std::string &key, Variant value) {
+    void ConfigurationParser::set(const std::string &key, Variant value) {
         fields_[key] = std::move(value);
     }
 
-    Variant DynamicStruct::get(const std::string &key) const {
+    Variant ConfigurationParser::get(const std::string &key) const {
         if (const auto it = fields_.find(key);
             it != fields_.end())
             return it->second;
         throw std::runtime_error("get Key not found: " + key);
     }
 
-    bool DynamicStruct::has(const std::string &key) const {
+    bool ConfigurationParser::has(const std::string &key) const {
         return fields_.contains(key);
     }
 
-    void DynamicStruct::remove(const std::string &key) {
+    void ConfigurationParser::remove(const std::string &key) {
         if (const auto it = fields_.find(key);
             it != fields_.end()) {
             fields_.erase(it);
@@ -106,7 +108,7 @@ namespace aim::utils::dynamic_data {
         }
     }
 
-    BuildBufResultT DynamicStruct::build_buf(const std::string &prefix, const std::vector<std::string> &names) {
+    BuildBufResultT ConfigurationParser::build_buf(const std::string &prefix, const std::vector<std::string> &names) {
         offset_ = 0;
         memset(temp_buf_, 0, sizeof(temp_buf_));
 
@@ -134,30 +136,5 @@ namespace aim::utils::dynamic_data {
         }
 
         return BuildBufResultT{temp_buf_, offset_};
-    }
-
-    void DynamicStruct::reset_and_remove_publishers() {
-        std::vector<std::string> keys_to_remove;
-
-        for (auto &[key, value]: fields_) {
-            // all pub/sub inst ends with _inst
-            if (key.size() >= 5 && key.compare(key.size() - 5, 5, "_inst") == 0) {
-                std::visit(
-                    [&]<typename T>(T &inst) {
-                        if constexpr (is_publisher_or_subscriber<T>::value) {
-                            if (inst) {
-                                inst.reset();
-                                keys_to_remove.push_back(key);
-                            }
-                        }
-                    },
-                    value
-                );
-            }
-        }
-
-        for (const auto &key: keys_to_remove) {
-            fields_.erase(key);
-        }
     }
 }

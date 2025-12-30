@@ -26,7 +26,6 @@ include_directories(
 
 add_executable(soem_backend
         src/soem_backend.cpp
-        src/dynamic_data_helper.cpp
         src/ecat_node.cpp
 
         src/tasks/dji_motor.cpp
@@ -41,6 +40,8 @@ add_executable(soem_backend
         src/utils/io_utils.cpp
         src/utils/logger_utils.cpp
         src/utils/sys_utils.cpp
+        src/utils/task_utils.cpp
+        src/utils/config_utils.cpp
 )
 
 ament_target_dependencies(soem_backend

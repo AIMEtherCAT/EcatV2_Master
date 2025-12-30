@@ -18,7 +18,7 @@ namespace aim::utils::sys {
     using namespace ecat::logging;
 
     std::string exec_cmd(const std::string &cmd) {
-        std::array<char, 128> buffer{};
+        std::array < char, 128 > buffer{};
         std::string result;
         FILE *pipe = popen(cmd.c_str(), "r");
         if (!pipe) return "ERROR";

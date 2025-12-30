@@ -5,22 +5,15 @@
 #ifndef ETHERCAT_NODE_HPP
 #define ETHERCAT_NODE_HPP
 
-#include "soem_wrapper/utils/io_utils.hpp"
-#include "soem_wrapper/dynamic_data_helper.hpp"
-#include "soem_wrapper/defs/task_defs.hpp"
+#include "chrono"
+#include "thread"
+#include "rclcpp/rclcpp.hpp"
 
-#include "ethercattype.h"
-#include "nicdrv.h"
-#include "osal.h"
-#include "ethercatmain.h"
-#include "ethercatconfig.h"
-#include "ethercatdc.h"
+namespace aim::ecat::task {
+    class TaskWrapper;
+}
 
 namespace aim::ecat {
-    using namespace aim::utils::dynamic_data;
-    using namespace aim::io::little_endian;
-    using namespace std::chrono_literals;
-
     // slave2master status enums
     constexpr uint8_t SLAVE_INITIALIZING = 1;
     constexpr uint8_t SLAVE_READY = 2;
@@ -58,26 +51,6 @@ namespace aim::ecat {
             return registered_module_buf_lens[eep_id].second;
         }
 
-        template<typename MsgT>
-        void create_and_insert_publisher(const std::string &prefix);
-
-        template<typename MsgT>
-        static void publish_msg(const std::string &prefix, const MsgT &msg);
-
-        template<typename MsgT>
-        void create_and_insert_subscriber(const std::string &prefix, uint8_t slave_id);
-
-        /**
-         * ros2 msg subscriber callback func
-         * write data to corresponding PDO buffer
-         * @tparam MsgT ros2 msg type
-         * @param msg msg ref
-         * @param prefix dynamic struct key prefix
-         * @param slave_id slave id
-         */
-        template<typename MsgT>
-        void generic_callback(const MsgT::SharedPtr &msg, const std::string &prefix, uint8_t slave_id);
-
     private:
         void register_components();
 
@@ -86,9 +59,6 @@ namespace aim::ecat {
                              int master_to_slave_buf_len,
                              int slave_to_master_buf_len,
                              int min_sw_rev);
-
-        void register_app(task::TaskWrapper *task_wrapper);
-
 
         void datacycle_callback();
 
