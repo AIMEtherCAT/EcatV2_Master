@@ -338,6 +338,7 @@ namespace aim::ecat {
                             if (ec_recover_slave(slave_idx, 500)) {
                                 ec_slave[slave_idx].islost = FALSE;
                                 RCLCPP_INFO(*logging::get_health_checker_logger(), "Slave idx=%d recovered", slave_idx);
+                                slave->recover_state();
                             }
                         } else {
                             ec_slave[slave_idx].islost = FALSE;

@@ -333,6 +333,10 @@ namespace aim::ecat {
     }
 
     void SlaveDevice::recover_master_to_slave_buf() {
+        if (master_to_slave_buf_backup_.size() != master_to_slave_buf_len_) {
+            return;
+        }
+
         memcpy(
             master_to_slave_buf_.data(),
             master_to_slave_buf_backup_.data(),
