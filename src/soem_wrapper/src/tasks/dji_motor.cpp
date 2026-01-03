@@ -156,6 +156,13 @@ namespace aim::ecat::task {
                 slave_device_->get_slave_to_master_buf().data(), &shared_offset_);
             custom_msgs_readdjimotor_shared_msg.motor1_error_code = read_uint8(
                 slave_device_->get_slave_to_master_buf().data(), &shared_offset_);
+        } else {
+            custom_msgs_readdjimotor_shared_msg.motor1_online = 0;
+            custom_msgs_readdjimotor_shared_msg.motor1_ecd = 0;
+            custom_msgs_readdjimotor_shared_msg.motor1_rpm = 0;
+            custom_msgs_readdjimotor_shared_msg.motor1_current = 0;
+            custom_msgs_readdjimotor_shared_msg.motor1_temperature = 0;
+            custom_msgs_readdjimotor_shared_msg.motor1_error_code = 0;
         }
 
         if (is_motor_enabled[1]) {
@@ -171,6 +178,13 @@ namespace aim::ecat::task {
                 slave_device_->get_slave_to_master_buf().data(), &shared_offset_);
             custom_msgs_readdjimotor_shared_msg.motor2_error_code = read_uint8(
                 slave_device_->get_slave_to_master_buf().data(), &shared_offset_);
+        } else {
+            custom_msgs_readdjimotor_shared_msg.motor2_online = 0;
+            custom_msgs_readdjimotor_shared_msg.motor2_ecd = 0;
+            custom_msgs_readdjimotor_shared_msg.motor2_rpm = 0;
+            custom_msgs_readdjimotor_shared_msg.motor2_current = 0;
+            custom_msgs_readdjimotor_shared_msg.motor2_temperature = 0;
+            custom_msgs_readdjimotor_shared_msg.motor2_error_code = 0;
         }
 
         if (is_motor_enabled[2]) {
@@ -186,6 +200,13 @@ namespace aim::ecat::task {
                 slave_device_->get_slave_to_master_buf().data(), &shared_offset_);
             custom_msgs_readdjimotor_shared_msg.motor3_error_code = read_uint8(
                 slave_device_->get_slave_to_master_buf().data(), &shared_offset_);
+        } else {
+            custom_msgs_readdjimotor_shared_msg.motor3_online = 0;
+            custom_msgs_readdjimotor_shared_msg.motor3_ecd = 0;
+            custom_msgs_readdjimotor_shared_msg.motor3_rpm = 0;
+            custom_msgs_readdjimotor_shared_msg.motor3_current = 0;
+            custom_msgs_readdjimotor_shared_msg.motor3_temperature = 0;
+            custom_msgs_readdjimotor_shared_msg.motor3_error_code = 0;
         }
 
         if (is_motor_enabled[3]) {
@@ -201,6 +222,13 @@ namespace aim::ecat::task {
                 slave_device_->get_slave_to_master_buf().data(), &shared_offset_);
             custom_msgs_readdjimotor_shared_msg.motor4_error_code = read_uint8(
                 slave_device_->get_slave_to_master_buf().data(), &shared_offset_);
+        } else {
+            custom_msgs_readdjimotor_shared_msg.motor4_online = 0;
+            custom_msgs_readdjimotor_shared_msg.motor4_ecd = 0;
+            custom_msgs_readdjimotor_shared_msg.motor4_rpm = 0;
+            custom_msgs_readdjimotor_shared_msg.motor4_current = 0;
+            custom_msgs_readdjimotor_shared_msg.motor4_temperature = 0;
+            custom_msgs_readdjimotor_shared_msg.motor4_error_code = 0;
         }
 
         publisher_->publish(custom_msgs_readdjimotor_shared_msg);
