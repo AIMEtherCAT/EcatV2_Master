@@ -94,7 +94,7 @@ Then, run the command ``git submodule add git@github.com:AIMEtherCAT/EcatV2_Mast
 
 After that, use the command ``git submodule update --init --recursive`` to fetch the code of `soem`.
 
-If this project updates in the future, you can use the command ``git submodule update --recursive --remote`` to 
+If this project updates in the future, you can use the command ``git submodule update --remote src/EcatV2_Master`` to 
 update code for soem_wrapper.
 
 ### Flash EEPROM For EtherCAT Module
