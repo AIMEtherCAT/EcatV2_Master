@@ -62,7 +62,7 @@ namespace aim::ecat {
 
         void datacycle_callback();
 
-        void state_check_callback() const;
+        void state_check_callback();
 
         char IOmap_[4096]{};
 

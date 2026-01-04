@@ -246,7 +246,7 @@ namespace aim::ecat {
         RCLCPP_INFO(*logging::get_data_logger(), "DATA thread exiting...");
     }
 
-    void EthercatNode::state_check_callback() const {
+    void EthercatNode::state_check_callback() {
         // pre-define var outside the loop
         // to save time and improve perf
         int slave_idx{};
