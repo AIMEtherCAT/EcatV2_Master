@@ -66,7 +66,7 @@ uint8 rotor_overtemperature // 0 or 1
 uint8 communication_lost    // 0 or 1
 uint8 overload              // 0 or 1
 
-uint16 ecd          // 14bits
+float32 position    // rad
 float32 velocity    // rad/s
 float32 torque      // N·m
 uint8 mos_temperature
