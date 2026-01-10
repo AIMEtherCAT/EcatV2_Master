@@ -130,80 +130,71 @@ namespace aim::ecat::task {
         custom_msgs_readdmmotor_shared_msg.communication_lost = 0;
         custom_msgs_readdmmotor_shared_msg.overload = 0;
 
-        if (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 8] == 0) {
-            custom_msgs_readdmmotor_shared_msg.online = 0;
-            custom_msgs_readdmmotor_shared_msg.position = 0;
-            custom_msgs_readdmmotor_shared_msg.velocity = 0;
-            custom_msgs_readdmmotor_shared_msg.torque = 0;
-            custom_msgs_readdmmotor_shared_msg.mos_temperature = 0;
-            custom_msgs_readdmmotor_shared_msg.rotor_temperature = 0;
-        } else {
-            custom_msgs_readdmmotor_shared_msg.online = 1;
+        custom_msgs_readdmmotor_shared_msg.online = slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 8];
 
-            switch (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 0] >> 4) {
-                case 0x0: {
-                    custom_msgs_readdmmotor_shared_msg.disabled = 1;
-                    break;
-                }
-                case 0x1: {
-                    custom_msgs_readdmmotor_shared_msg.enabled = 1;
-                    break;
-                }
-                case 0x8: {
-                    custom_msgs_readdmmotor_shared_msg.overvoltage = 1;
-                    break;
-                }
-                case 0x9: {
-                    custom_msgs_readdmmotor_shared_msg.undervoltage = 1;
-                    break;
-                }
-                case 0xA: {
-                    custom_msgs_readdmmotor_shared_msg.overcurrent = 1;
-                    break;
-                }
-                case 0xB: {
-                    custom_msgs_readdmmotor_shared_msg.mos_overtemperature = 1;
-                    break;
-                }
-                case 0xC: {
-                    custom_msgs_readdmmotor_shared_msg.rotor_overtemperature = 1;
-                    break;
-                }
-                case 0xD: {
-                    custom_msgs_readdmmotor_shared_msg.communication_lost = 1;
-                    break;
-                }
-                case 0xE: {
-                    custom_msgs_readdmmotor_shared_msg.overload = 1;
-                    break;
-                }
-                default: {
-                }
+        switch (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 0] >> 4) {
+            case 0x0: {
+                custom_msgs_readdmmotor_shared_msg.disabled = 1;
+                break;
             }
-
-            custom_msgs_readdmmotor_shared_msg.position = uint_to_float(
-                slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 1] << 8 | slave_device_->
-                get_slave_to_master_buf()[pdoread_offset_ + 2],
-                -pmax_,
-                pmax_,
-                16);
-            custom_msgs_readdmmotor_shared_msg.velocity = uint_to_float(
-                slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 3] << 4 | slave_device_->
-                get_slave_to_master_buf()[pdoread_offset_ + 4] >> 4,
-                -vmax_,
-                vmax_,
-                12);
-            custom_msgs_readdmmotor_shared_msg.torque = uint_to_float(
-                (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 4] & 0xF) << 8 | slave_device_->
-                get_slave_to_master_buf()[pdoread_offset_ + 5],
-                -tmax_,
-                tmax_,
-                12);
-            custom_msgs_readdmmotor_shared_msg.mos_temperature = slave_device_->get_slave_to_master_buf()[
-                pdoread_offset_ + 6];
-            custom_msgs_readdmmotor_shared_msg.rotor_temperature = slave_device_->get_slave_to_master_buf()[
-                pdoread_offset_ + 7];
+            case 0x1: {
+                custom_msgs_readdmmotor_shared_msg.enabled = 1;
+                break;
+            }
+            case 0x8: {
+                custom_msgs_readdmmotor_shared_msg.overvoltage = 1;
+                break;
+            }
+            case 0x9: {
+                custom_msgs_readdmmotor_shared_msg.undervoltage = 1;
+                break;
+            }
+            case 0xA: {
+                custom_msgs_readdmmotor_shared_msg.overcurrent = 1;
+                break;
+            }
+            case 0xB: {
+                custom_msgs_readdmmotor_shared_msg.mos_overtemperature = 1;
+                break;
+            }
+            case 0xC: {
+                custom_msgs_readdmmotor_shared_msg.rotor_overtemperature = 1;
+                break;
+            }
+            case 0xD: {
+                custom_msgs_readdmmotor_shared_msg.communication_lost = 1;
+                break;
+            }
+            case 0xE: {
+                custom_msgs_readdmmotor_shared_msg.overload = 1;
+                break;
+            }
+            default: {
+            }
         }
+
+        custom_msgs_readdmmotor_shared_msg.position = uint_to_float(
+            slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 1] << 8 | slave_device_->
+            get_slave_to_master_buf()[pdoread_offset_ + 2],
+            -pmax_,
+            pmax_,
+            16);
+        custom_msgs_readdmmotor_shared_msg.velocity = uint_to_float(
+            slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 3] << 4 | slave_device_->
+            get_slave_to_master_buf()[pdoread_offset_ + 4] >> 4,
+            -vmax_,
+            vmax_,
+            12);
+        custom_msgs_readdmmotor_shared_msg.torque = uint_to_float(
+            (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 4] & 0xF) << 8 | slave_device_->
+            get_slave_to_master_buf()[pdoread_offset_ + 5],
+            -tmax_,
+            tmax_,
+            12);
+        custom_msgs_readdmmotor_shared_msg.mos_temperature = slave_device_->get_slave_to_master_buf()[
+            pdoread_offset_ + 6];
+        custom_msgs_readdmmotor_shared_msg.rotor_temperature = slave_device_->get_slave_to_master_buf()[
+            pdoread_offset_ + 7];
 
         publisher_->publish(custom_msgs_readdmmotor_shared_msg);
     }
