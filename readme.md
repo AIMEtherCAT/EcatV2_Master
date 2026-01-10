@@ -17,6 +17,8 @@ control algorithms.
   latency and low jitter for control loops.
 * **Modular Task System**: Built-in driver tasks for various common devices (e.g., DJI motors, IMUs, PWM controllers)
   with easy support for extending custom tasks.
+* **Fault Tolerance & Recovery**: Supports automatic reconnection and recovery after unexpected disconnections or power
+  loss, with configurable `Keep Last` or `Reset to Default` protection modes to ensure safe system state restoration
 * **Auxiliary Tools**: Provides practical utilities for EEPROM flashing, slave information scanning, and more.
 
 ## Quick Start
