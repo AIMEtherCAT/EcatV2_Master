@@ -8,6 +8,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "custom_msgs/msg/read_lk_motor.hpp"
+#include "custom_msgs/msg/read_lk_motor_multi.hpp"
 #include "custom_msgs/msg/read_djirc.hpp"
 #include "custom_msgs/msg/read_dji_motor.hpp"
 #include "custom_msgs/msg/read_sbusrc.hpp"
@@ -20,6 +21,7 @@
 #include "custom_msgs/msg/write_lk_motor_multi_round_position_control_with_speed_limit.hpp"
 #include "custom_msgs/msg/write_lk_motor_single_round_position_control.hpp"
 #include "custom_msgs/msg/write_lk_motor_single_round_position_control_with_speed_limit.hpp"
+#include "custom_msgs/msg/write_lk_motor_broadcast_current_control.hpp"
 #include "custom_msgs/msg/write_dji_motor.hpp"
 #include "custom_msgs/msg/write_on_board_pwm.hpp"
 #include "custom_msgs/msg/write_dm_motor_mit_control.hpp"
@@ -307,11 +309,16 @@ namespace aim::ecat::task {
         constexpr uint8_t LK_CTRL_TYPE_MULTI_ROUND_POSITION_WITH_SPEED_LIMIT = 0x05;
         constexpr uint8_t LK_CTRL_TYPE_SINGLE_ROUND_POSITION = 0x06;
         constexpr uint8_t LK_CTRL_TYPE_SINGLE_ROUND_POSITION_WITH_SPEED_LIMIT = 0x07;
+        constexpr uint8_t LK_CTRL_TYPE_BROADCAST_CURRENT = 0x08;
 
         class LK_MOTOR final : public TaskWrapper {
-            static custom_msgs::msg::ReadLkMotor custom_msgs_readlkmotor_shared_msg;
+            bool is_broadcast_mode_{false};
 
-            rclcpp::Publisher<custom_msgs::msg::ReadLkMotor>::SharedPtr publisher_{};
+            static custom_msgs::msg::ReadLkMotor custom_msgs_readlkmotor_shared_msg;
+            static custom_msgs::msg::ReadLkMotorMulti custom_msgs_readlkmotormulti_shared_msg;
+
+            rclcpp::Publisher<custom_msgs::msg::ReadLkMotor>::SharedPtr publisher_single_motor_{};
+            rclcpp::Publisher<custom_msgs::msg::ReadLkMotorMulti>::SharedPtr publisher_multi_motor_{};
 
             rclcpp::Subscription<custom_msgs::msg::WriteLkMotorOpenloopControl>::SharedPtr subscriber_openloop_control_
                     {};
@@ -326,6 +333,8 @@ namespace aim::ecat::task {
             subscriber_single_round_pos_control_{};
             rclcpp::Subscription<custom_msgs::msg::WriteLkMotorSingleRoundPositionControlWithSpeedLimit>::SharedPtr
             subscriber_single_round_pos_with_speed_limit_control_{};
+            rclcpp::Subscription<custom_msgs::msg::WriteLkMotorBroadcastCurrentControl>::SharedPtr
+            subscriber_broadcast_current_control_{};
 
             void on_command_openloop_control(custom_msgs::msg::WriteLkMotorOpenloopControl::SharedPtr msg) const;
 
@@ -346,13 +355,19 @@ namespace aim::ecat::task {
             void on_command_single_round_pos_with_speed_limit_control(
                 custom_msgs::msg::WriteLkMotorSingleRoundPositionControlWithSpeedLimit::SharedPtr msg) const;
 
+            void on_command_broadcast_current_control(
+                custom_msgs::msg::WriteLkMotorBroadcastCurrentControl::SharedPtr msg) const;
+
         public:
             LK_MOTOR() : TaskWrapper(LK_APP_ID, "LK_MOTOR", true, true) {
             }
 
             void cleanup() override {
-                if (publisher_) {
-                    publisher_.reset();
+                if (publisher_single_motor_) {
+                    publisher_single_motor_.reset();
+                }
+                if (publisher_multi_motor_) {
+                    publisher_multi_motor_.reset();
                 }
                 if (subscriber_openloop_control_) {
                     subscriber_openloop_control_.reset();
@@ -374,6 +389,9 @@ namespace aim::ecat::task {
                 }
                 if (subscriber_single_round_pos_with_speed_limit_control_) {
                     subscriber_single_round_pos_with_speed_limit_control_.reset();
+                }
+                if (subscriber_broadcast_current_control_) {
+                    subscriber_broadcast_current_control_.reset();
                 }
             }
 

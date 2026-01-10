@@ -18,8 +18,9 @@ please reduce the motor feedback or control frequency.
       forward control commands at this frequency.
 * CAN
     * The CAN port you connected to.
-* Motor Driver ID
-    * The Driver ID of the motor, can be set by the DIP switch or by the LingKong Motor Tool (available [here](http://www.lkmotor.cn/Download.aspx?ClassID=45)).
+* Motor Driver ID (For Single Motor Modes Only)
+    * The Driver ID of the motor, can be set by the DIP switch or by the LingKong Motor Tool (
+      available [here](http://www.lkmotor.cn/Download.aspx?ClassID=45)).
 * Control Type
     * The control type of motor.
         * Open-loop current (only supported in MS serial motors)
@@ -31,6 +32,10 @@ please reduce the motor feedback or control frequency.
         * Single-Round Position, the unit of control target is 0.01deg
         * Single-Round Position With Speed Limit, the unit of control target is 0.01deg, the unit of speed limitation is
           1deg/s
+        * Broadcast Current
+            * In this mode, this task will control 4 motors in one CAN packet
+            * This mode requires a setting change using LkMotorTool
+            * The motor Driver ID can only be 1-4 in this mode
 
 More information about the protocol of LkTech Motor can be found [here](http://www.lkmotor.cn/Download.aspx?ClassID=47).
 
@@ -54,6 +59,37 @@ int16 current       // 66/4096 A for MG serial motors, 33/4096 A for MF serial m
 int16 speed         // 1deg/s
 uint16 encoder
 uint8 temperature
+```
+
+```c
+/* Message type: custom_msgs/msg/ReadLkMotorMulti */
+
+std_msgs/Header header
+
+uint8 motor1_online     // 0 or 1
+int16 motor1_current    // 66/4096 A for MG serial motors, 33/4096 A for MF serial motors, [-1000, 1000] PWR for MS serial motors
+int16 motor1_speed      // 1deg/s
+uint16 motor1_encoder
+uint8 motor1_temperature
+
+uint8 motor2_online
+int16 motor2_current
+int16 motor2_speed
+uint16 motor2_encoder
+uint8 motor2_temperature
+
+uint8 motor3_online
+int16 motor3_current
+int16 motor3_speed
+uint16 motor3_encoder
+uint8 motor3_temperature
+
+uint8 motor4_online
+int16 motor4_current
+int16 motor4_speed
+uint16 motor4_encoder
+uint8 motor4_temperature
+
 ```
 
 ```c
@@ -117,4 +153,13 @@ uint8 enable    // 0 or 1
 uint8 direction     // 0 for clockwise, 1 for counter-clockwise
 int16 speed_limit   // deg/s
 uint32 angle        // 0.01deg
+```
+
+```c
+/* Message type: custom_msgs/msg/WriteLkMotorBroadcastCurrentControl */
+
+int16 motor1_cmd    // [-2000, 2000]
+int16 motor2_cmd    // [-2000, 2000]
+int16 motor3_cmd    // [-2000, 2000]
+int16 motor4_cmd    // [-2000, 2000]
 ```
