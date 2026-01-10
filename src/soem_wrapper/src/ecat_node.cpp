@@ -428,7 +428,7 @@ namespace aim::ecat {
         // deprecated
         // register_module(1, "FlightModule", 16, 40, 001);
         // register_module(2, "MotorModule", 56, 80, 001);
-        register_module(3, "H750UniversalModule", 80, 80, 006);
+        register_module(3, "H750UniversalModule", 80, 80, 007);
     }
 
     void EthercatNode::register_module(const uint32_t eep_id,
