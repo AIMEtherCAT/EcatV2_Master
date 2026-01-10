@@ -71,6 +71,43 @@ The `tools/` directory contains useful utilities provided by SOEM:
     * Liveliness lease duration: default,
     * avoid ros namespace conventions: false
 
+## Simple Performance Test
+
+This test measures the round-trip time (RTT) between a master node and a single slave node. The master sends a 1-byte
+sequence number to the slave and records the send timestamp. Upon receiving the packet, the slave will send it back to
+the master. The master then calculates the RTT by subtracting the original send timestamp from the time it receives the
+reply and publishes this latency as a Float32 message on corresponding latency topic.
+
+### Test Environment
+
+* **Operating System:** Ubuntu 24.04
+* **Kernel:** 6.8.1-1031-realtime
+* **ROS 2:** Jazzy 0.11.0-1noble.20250814.111056 amd64
+* **CPU:** 12th Gen Intel® Core™ i7-12650H
+* **Boot Parameters:**
+  ``BOOT_IMAGE=/boot/vmlinuz-6.8.1-1031-realtime root=UUID=fd122407-8308-41d2-abcb-ae2fe12fc3ae ro quiet splash vt.handoff=7 nohz=on nohz_full=0,1 rcu_nocbs=0,1 isolcpus=0,1 irqaffinity=2-15``
+* **Network Interface Card (NIC):**
+    * PCI Address: 03:00.0
+    * Model: Realtek RTL8111/8168/8211/8411 PCI Express Gigabit Ethernet Controller (rev 15)
+    * Driver: r8169
+    * Firmware Version: rtl8168h-2_0.0.2 02/26/2015
+* **Active Tasks:**
+    * 1x DBUS
+    * 1x DM motor in MIT mode on CAN1 (1 motor)
+    * 1x LK motor in broadcast mode on CAN2 (4 motors)
+* **Additional Applications Running:**
+    * Foxglove Bridge
+    * CLion IDE
+    * Standalone Python node recording `/latency` topic data
+
+### Test Result
+
+| Mean (ms) | Max (ms) | Min (ms) | 50th percentile (ms) | 90th percentile (ms) | 95th percentile (ms) | 99th percentile (ms) |
+|:---------:|:--------:|:--------:|:--------------------:|:--------------------:|:--------------------:|:--------------------:|
+|   0.241   |  0.414   |  0.169   |        0.222         |        0.314         |        0.321         |        0.333         |
+
+![rtt-graph.png](docs/img/rtt-graph.png)
+
 ## Maintainer
 
 * Hang (scyhx9@nottingham.ac.uk)
