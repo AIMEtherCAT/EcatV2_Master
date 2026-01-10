@@ -326,7 +326,7 @@ namespace aim::ecat {
     void SlaveDevice::write_init_values() {
         memset(master_to_slave_buf_.data(), 0, master_to_slave_buf_len_);
         for (const auto &task: task_list_) {
-            if (task->has_publishers()) {
+            if (task->has_subscribers()) {
                 task->init_value();
             }
         }
