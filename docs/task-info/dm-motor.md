@@ -36,6 +36,8 @@ please reduce the motor feedback or control frequency.
 
 ``CAN ID/Master ID`` and ``P/V/T Max`` can be found in the DM Debugging Tool as below.
 
+Please set the PMax to PI using the DMTools software for best ecd accuracy.
+
 ![dm-debugging-tool.png](../img/dm-debugging-tool.png)
 
 More information about DM Motor can be found [here](https://gl1po2nscb.feishu.cn/wiki/MZ32w0qnnizTpOkNvAZcJ9SlnXb).

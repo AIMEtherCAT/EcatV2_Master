@@ -96,7 +96,7 @@ namespace aim::ecat::task {
         custom_msgs_readdmmotor_shared_msg.overload = 0;
 
         custom_msgs_readdmmotor_shared_msg.online = 0;
-        custom_msgs_readdmmotor_shared_msg.ecd = 0;
+        custom_msgs_readdmmotor_shared_msg.position = 0;
         custom_msgs_readdmmotor_shared_msg.velocity = 0;
         custom_msgs_readdmmotor_shared_msg.torque = 0;
         custom_msgs_readdmmotor_shared_msg.mos_temperature = 0;
@@ -132,7 +132,7 @@ namespace aim::ecat::task {
 
         if (slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 8] == 0) {
             custom_msgs_readdmmotor_shared_msg.online = 0;
-            custom_msgs_readdmmotor_shared_msg.ecd = 0;
+            custom_msgs_readdmmotor_shared_msg.position = 0;
             custom_msgs_readdmmotor_shared_msg.velocity = 0;
             custom_msgs_readdmmotor_shared_msg.torque = 0;
             custom_msgs_readdmmotor_shared_msg.mos_temperature = 0;
@@ -181,9 +181,12 @@ namespace aim::ecat::task {
                 }
             }
 
-            custom_msgs_readdmmotor_shared_msg.ecd =
-                    slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 1] << 8 | slave_device_->
-                    get_slave_to_master_buf()[pdoread_offset_ + 2];
+            custom_msgs_readdmmotor_shared_msg.position = uint_to_float(
+                slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 1] << 8 | slave_device_->
+                get_slave_to_master_buf()[pdoread_offset_ + 2],
+                -pmax_,
+                pmax_,
+                16);
             custom_msgs_readdmmotor_shared_msg.velocity = uint_to_float(
                 slave_device_->get_slave_to_master_buf()[pdoread_offset_ + 3] << 4 | slave_device_->
                 get_slave_to_master_buf()[pdoread_offset_ + 4] >> 4,

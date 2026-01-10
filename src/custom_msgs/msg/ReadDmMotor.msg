@@ -11,7 +11,7 @@ uint8 rotor_overtemperature
 uint8 communication_lost
 uint8 overload
 
-uint16 ecd
+float32 position
 float32 velocity
 float32 torque
 uint8 mos_temperature
