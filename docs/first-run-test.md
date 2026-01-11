@@ -225,8 +225,6 @@ $ ros2 launch stewart_bringup bringup.launch.py
 [soem_backend-1] [INFO] [1753707019.749195776] [EthercatNode_DATA]: slave id 1 confirmed ready
 ```
 
-### Done
-
 After finishing these steps, you may see lines like ``slave id n confirmed ready``, which confirms that your system and
 slave module are working correctly. Note, if you connected more than one slave, you should see this messages multiple
 times each with different slave id, in order to make sure that all slaves are ready.
