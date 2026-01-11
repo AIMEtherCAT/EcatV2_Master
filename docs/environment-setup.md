@@ -89,7 +89,7 @@ After that, enter your workspace folder and create a ``src`` folder.
 
 If you haven't initialized a git repository here, please run the command ``git init`` first.
 
-Then, run the command ``git submodule add git@github.com:AIMEtherCAT/EcatV2_Master.git src/EcatV2_Master`` to add
+Then, run the command ``git submodule add https://github.com/AIMEtherCAT/EcatV2_Master.git src/EcatV2_Master`` to add
 `soem_wrapper` to your project.
 
 After that, use the command ``git submodule update --init --recursive`` to fetch the code of `soem`.
