@@ -110,6 +110,10 @@ reply and publishes this latency as a Float32 message on corresponding latency t
 
 ![rtt-graph.png](docs/img/rtt-graph.png)
 
+## Sponsors & Partners
+
+We would like to thank [**RT-Labs**](https://rt-labs.com) for supporting our project.  
+
 ## Maintainer
 
 * Hang (scyhx9@nottingham.ac.uk)
