@@ -149,6 +149,12 @@ namespace aim::ecat::task {
             void publish_empty_message() override;
 
             void read() override;
+
+            void cleanup() override {
+                if (publisher_) {
+                    publisher_.reset();
+                }
+            }
         };
     }
 
