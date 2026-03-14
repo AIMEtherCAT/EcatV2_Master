@@ -18,7 +18,7 @@ namespace aim::ecat::task {
         auto [sdo_buf, sdo_len] = get_configuration_data()->build_buf(fmt::format("{}sdowrite_", prefix),
                                                                       {
                                                                           "connection_lost_write_action",
-                                                                          "can_id",
+                                                                          "can_inst",
                                                                           "chassis_to_cap_id", "cap_to_chassis_id_"
                                                                       });
         memcpy(buf + *offset, sdo_buf, sdo_len);
