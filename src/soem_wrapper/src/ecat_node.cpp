@@ -431,6 +431,7 @@ namespace aim::ecat {
         // register_module(1, "FlightModule", 16, 40, 001);
         // register_module(2, "MotorModule", 56, 80, 001);
         register_module(3, "H750UniversalModule", 80, 80, 8);
+        register_module(4, "H750UniversalModule (Large PDO V.)", 80, 112, 8);
     }
 
     void EthercatNode::register_module(const uint32_t eep_id,
