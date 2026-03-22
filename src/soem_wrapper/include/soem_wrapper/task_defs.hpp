@@ -29,6 +29,7 @@
 #include "custom_msgs/msg/write_dm_motor_speed_control.hpp"
 #include "custom_msgs/msg/read_super_cap.hpp"
 #include "custom_msgs/msg/write_super_cap.hpp"
+#include "custom_msgs/msg/read_vt13_remote_control.hpp"
 
 namespace aim::ecat {
     class SlaveDevice;
@@ -49,7 +50,7 @@ namespace aim::ecat::task {
     constexpr uint8_t SBUS_RC_APP_ID = 11;
     constexpr uint8_t DM_MOTOR_APP_ID = 12;
     constexpr uint8_t SUPER_CAP_APP_ID = 13;
-
+    constexpr uint8_t VT13_REMOTE_CONTROL_APP_ID = 14;
     class TaskWrapper {
         uint8_t type_id_ = 0;
         std::string type_name_{"unknown_task"};
@@ -112,6 +113,39 @@ namespace aim::ecat::task {
             return connection_lost_write_action_;
         }
     };
+
+    namespace vt13_rc {
+        constexpr uint8_t   RC_MSG_PKG_LEN = 17;
+
+        constexpr uint16_t  RC_STICK_MIN = 364;
+        constexpr uint16_t  RC_STICK_MAX = 1684;
+        constexpr float     RC_JOYSTICK_CONV_FACTOR = 2.0f / (float)(RC_STICK_MAX - RC_STICK_MIN);
+
+        constexpr uint16_t  RC_WHEEL_MIN = 364;
+        constexpr uint16_t  RC_WHEEL_MAX = 1684;
+        constexpr float     RC_WHEEL_CONV_FACTOR = 2.0f / (float)(RC_WHEEL_MAX - RC_WHEEL_MIN);
+
+        class VT13_RC final : public TaskWrapper {
+            static custom_msgs::msg::ReadVT13RemoteControl custom_msgs_readvt13remotecontrol_shared_msg;
+            rclcpp::Publisher<custom_msgs::msg::ReadVT13RemoteControl>::SharedPtr publisher_{};
+
+        public:
+            VT13_RC() : TaskWrapper(VT13_REMOTE_CONTROL_APP_ID, "VT13_RC", true, false) {
+            }
+
+            void init_sdo(uint8_t * /*buf*/, int * /*offset*/, uint16_t slave_id, const std::string &prefix) override;
+
+            void publish_empty_message() override;
+
+            void read() override;
+
+            void cleanup() override {
+                if (publisher_) {
+                    publisher_.reset();
+                }
+            }
+        };   
+    }
 
     namespace dbus_rc {
         class DBUS_RC final : public TaskWrapper {

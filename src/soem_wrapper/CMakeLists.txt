@@ -46,6 +46,7 @@ add_executable(soem_backend
         src/tasks/onboard_pwm.cpp
         src/tasks/sbus_rc.cpp
         src/tasks/super_cap.cpp
+        src/tasks/vt13_rc.cpp
 
         src/utils/io_utils.cpp
         src/utils/logger_utils.cpp

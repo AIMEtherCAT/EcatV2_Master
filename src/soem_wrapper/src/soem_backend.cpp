@@ -237,6 +237,10 @@ namespace aim::ecat {
                     task_wrapper = std::make_unique<task::super_cap::SUPER_CAP>();
                     break;
                 }
+                case task::VT13_REMOTE_CONTROL_APP_ID: {
+                    task_wrapper = std::make_unique<task::vt13_rc::VT13_RC>();
+                    break;
+                }
                 default: {
                     RCLCPP_ERROR(*get_cfg_logger(), "Unknown task type = %d", task_type);
                 }
