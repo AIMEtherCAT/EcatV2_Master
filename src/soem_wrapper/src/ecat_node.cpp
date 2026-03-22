@@ -126,118 +126,118 @@ namespace aim::ecat {
         in_operational_ = true;
 
         while (running_) {
-            // recv ecat frame
-            wkc_ = ec_receive_processdata(100);
+                // recv ecat frame
+                wkc_ = ec_receive_processdata(100);
 
-            // transfer data from ecat stack into buffer managed by ourselves
-            for (const auto &slave: get_slave_devices()) {
-                std::lock_guard lock(slave->mtx_);
-                slave->receive_from_slave();
-            }
-
-            // check if all slaves are all ready
-            if (!all_slave_ready) {
-                // initially true
-                bool all_ready = true;
-                // check state of all slaves
+                // transfer data from ecat stack into buffer managed by ourselves
                 for (const auto &slave: get_slave_devices()) {
                     std::lock_guard lock(slave->mtx_);
-                    if (*slave->get_slave_status_ptr()
-                        < SLAVE_CONFIRM_READY
-                        || !slave->is_ready()) {
-                        // any one not ready, mark the final result as not ready
-                        all_ready = false;
-                        break;
+                    slave->receive_from_slave();
+                }
+
+                // check if all slaves are all ready
+                if (!all_slave_ready) {
+                    // initially true
+                    bool all_ready = true;
+                    // check state of all slaves
+                    for (const auto &slave: get_slave_devices()) {
+                        std::lock_guard lock(slave->mtx_);
+                        if (*slave->get_slave_status_ptr()
+                            < SLAVE_CONFIRM_READY
+                            || !slave->is_ready()) {
+                            // any one not ready, mark the final result as not ready
+                            all_ready = false;
+                            break;
+                        }
+                    }
+                    // if all ready, log ready
+                    if (all_ready) {
+                        all_slave_ready = true;
+                        RCLCPP_INFO(*logging::get_data_logger(),
+                                    "========== All %d slave(s) ready, system started ==========",
+                                    ec_slavecount);
                     }
                 }
-                // if all ready, log ready
-                if (all_ready) {
-                    all_slave_ready = true;
-                    RCLCPP_INFO(*logging::get_data_logger(),
-                                "========== All %d slave(s) ready, system started ==========",
-                                ec_slavecount);
-                }
-            }
 
-            // process pdo device by devices
-            for (const auto &slave: get_slave_devices()) {
-                std::lock_guard lock(slave->mtx_);
+                // process pdo device by devices
+                for (const auto &slave: get_slave_devices()) {
+                    std::lock_guard lock(slave->mtx_);
 
-                // if this device is not fully configured, skip pdo processing
-                if (slave->is_conf_ros_done() == 0
-                    || slave->is_ecat_conf_done() == 0) {
-                    continue;
-                }
+                    // if this device is not fully configured, skip pdo processing
+                    if (slave->is_conf_ros_done() == 0
+                        || slave->is_ecat_conf_done() == 0) {
+                        continue;
+                    }
 
-                // slave report that all args are well-received
-                if (*slave->get_slave_status_ptr() == SLAVE_CONFIRM_READY
-                    && !slave->is_ready()) {
-                    RCLCPP_INFO(*logging::get_data_logger(), "Slave id=%d confirmed ready", slave->get_index());
-                    slave->set_ready(true);
-                }
+                    // slave report that all args are well-received
+                    if (*slave->get_slave_status_ptr() == SLAVE_CONFIRM_READY
+                        && !slave->is_ready()) {
+                        RCLCPP_INFO(*logging::get_data_logger(), "Slave id=%d confirmed ready", slave->get_index());
+                        slave->set_ready(true);
+                    }
 
-                // sending args
-                // master will send arg bytes one by one
-                // slave will send what it receives back to the master
-                // to ensure the data is correct
-                if (*slave->get_master_status_ptr() == MASTER_SENDING_ARGUMENTS
-                    && !slave->is_arg_sent()) {
-                    slave->send_arg();
-                }
+                    // sending args
+                    // master will send arg bytes one by one
+                    // slave will send what it receives back to the master
+                    // to ensure the data is correct
+                    if (*slave->get_master_status_ptr() == MASTER_SENDING_ARGUMENTS
+                        && !slave->is_arg_sent()) {
+                        slave->send_arg();
+                    }
 
-                // if slave not ready before
-                // but updated to ready in this cycle
-                if (!slave->is_ready()
-                    && slave->is_arg_sent()
-                    && *slave->get_slave_status_ptr() == SLAVE_READY) {
-                    // write initial value for each app
-                    // only write in first initialization
-                    if (*slave->get_master_status_ptr() != MASTER_READY) {
-                        if (slave->get_reconnected_times() == 0) {
-                            slave->write_init_values();
-                        } else {
-                            slave->recover_master_to_slave_buf();
-                            RCLCPP_INFO(*logging::get_health_checker_logger(),
-                                        "Slave id=%d master to slave buf recovered", slave->get_index());
+                    // if slave not ready before
+                    // but updated to ready in this cycle
+                    if (!slave->is_ready()
+                        && slave->is_arg_sent()
+                        && *slave->get_slave_status_ptr() == SLAVE_READY) {
+                        // write initial value for each app
+                        // only write in first initialization
+                        if (*slave->get_master_status_ptr() != MASTER_READY) {
+                            if (slave->get_reconnected_times() == 0) {
+                                slave->write_init_values();
+                            } else {
+                                slave->recover_master_to_slave_buf();
+                                RCLCPP_INFO(*logging::get_health_checker_logger(),
+                                            "Slave id=%d master to slave buf recovered", slave->get_index());
+                            }
+
+                            // after this slave will go into normal working state
+                            RCLCPP_INFO(*logging::get_data_logger(),
+                                        "Slave id=%d sdo confirmed received", slave->get_index());
                         }
 
-                        // after this slave will go into normal working state
-                        RCLCPP_INFO(*logging::get_data_logger(),
-                                    "Slave id=%d sdo confirmed received", slave->get_index());
+                        *slave->get_master_status_ptr() = MASTER_READY;
                     }
 
-                    *slave->get_master_status_ptr() = MASTER_READY;
+                    // if slave is ready/working
+                    if (slave->is_ready()) {
+                        current_time = rclcpp::Clock().now();
+                        slave->process_pdo(current_time);
+                    }
                 }
 
-                // if slave is ready/working
-                if (slave->is_ready()) {
-                    current_time = rclcpp::Clock().now();
-                    slave->process_pdo(current_time);
+                // if configuration is finished and exiting
+                // then override all tasks with the init value
+                // thereby resetting all the actuators in the slave
+                if (exiting_ && !exiting_reset_called_) {
+                    for (const auto &slave: get_slave_devices()) {
+                        if (slave->is_arg_sent()) {
+                            slave->write_init_values();
+                            RCLCPP_INFO(*logging::get_data_logger(), "Slave id=%d exit reset command sent",
+                                        slave->get_index());
+                        }
+                    }
+                    exiting_reset_called_ = true;
                 }
-            }
 
-            // if configuration is finished and exiting
-            // then override all tasks with the init value
-            // thereby resetting all the actuators in the slave
-            if (exiting_ && !exiting_reset_called_) {
+                // transfer pdo data from buffer managed by ourselves info ecat stack
                 for (const auto &slave: get_slave_devices()) {
-                    if (slave->is_arg_sent()) {
-                        slave->write_init_values();
-                        RCLCPP_INFO(*logging::get_data_logger(), "Slave id=%d exit reset command sent",
-                                    slave->get_index());
-                    }
+                    std::lock_guard lock(slave->mtx_);
+                    slave->transfer_to_slave();
                 }
-                exiting_reset_called_ = true;
-            }
 
-            // transfer pdo data from buffer managed by ourselves info ecat stack
-            for (const auto &slave: get_slave_devices()) {
-                std::lock_guard lock(slave->mtx_);
-                slave->transfer_to_slave();
-            }
-
-            // send ecat frame
-            ec_send_processdata();
+                // send ecat frame
+                ec_send_processdata();
         }
 
         // destroy all publisher and subscriber
