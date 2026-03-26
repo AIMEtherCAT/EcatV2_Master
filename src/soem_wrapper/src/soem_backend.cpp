@@ -113,14 +113,12 @@ namespace aim::ecat {
                     get_node()->get_device_master_to_slave_buf_len(ec_slave[index_].eep_id));
                 master_to_slave_buf_len_ = get_node()->get_device_master_to_slave_buf_len(
                     ec_slave[index_].eep_id);
-                master_to_slave_buf_.clear();
 
                 slave_to_master_buf_.clear();
                 slave_to_master_buf_.resize(
                     get_node()->get_device_slave_to_master_buf_len(ec_slave[index_].eep_id));
                 slave_to_master_buf_len_ = get_node()->get_device_slave_to_master_buf_len(
                     ec_slave[index_].eep_id);
-                slave_to_master_buf_.clear();
             }
 
             RCLCPP_INFO(*get_cfg_logger(),
