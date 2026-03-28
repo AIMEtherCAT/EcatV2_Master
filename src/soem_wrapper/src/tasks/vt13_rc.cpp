@@ -47,6 +47,13 @@ namespace aim::ecat::task {
                 publish_empty_message();
                 return;
             }
+
+            if (!slave_buf[pdoread_offset_ + 17]) {
+                custom_msgs_readvt13remotecontrol_shared_msg.online = 0;
+                publisher_->publish(custom_msgs_readvt13remotecontrol_shared_msg);
+                return;
+            }
+
             // Joystick values, 4*11 = 44 bits, bytes 0-5
             custom_msgs_readvt13remotecontrol_shared_msg.right_joystick_x = -(float)(((slave_buf[pdoread_offset_ + 0] 
                 | slave_buf[pdoread_offset_ + 1] << 8) & 0x07ff) - 1024) * RC_JOYSTICK_CONV_FACTOR;
@@ -94,6 +101,7 @@ namespace aim::ecat::task {
             custom_msgs_readvt13remotecontrol_shared_msg.key_c = (slave_buf[pdoread_offset_ + 16] >> 5) & 0x01;
             custom_msgs_readvt13remotecontrol_shared_msg.key_v = (slave_buf[pdoread_offset_ + 16] >> 6) & 0x01;
             custom_msgs_readvt13remotecontrol_shared_msg.key_b = (slave_buf[pdoread_offset_ + 16] >> 7) & 0x01;
+            custom_msgs_readvt13remotecontrol_shared_msg.online = 1;
             publisher_->publish(custom_msgs_readvt13remotecontrol_shared_msg);
         } catch (const std::exception &e) {
             RCLCPP_ERROR(*get_data_logger(), "VT13_RC read failed: %s", e.what());

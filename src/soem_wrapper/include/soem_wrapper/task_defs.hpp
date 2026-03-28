@@ -115,7 +115,7 @@ namespace aim::ecat::task {
     };
 
     namespace vt13_rc {
-        constexpr uint8_t   RC_MSG_PKG_LEN = 17;
+        constexpr uint8_t   RC_MSG_PKG_LEN = 18;
 
         constexpr uint16_t  RC_STICK_MIN = 364;
         constexpr uint16_t  RC_STICK_MAX = 1684;
