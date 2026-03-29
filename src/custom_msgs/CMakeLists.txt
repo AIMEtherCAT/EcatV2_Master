@@ -45,6 +45,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/ReadDmMotor.msg"
         "msg/WriteDmMotorMITControl.msg"
         "msg/WriteDmMotorPositionControlWithSpeedLimit.msg"
+        "msg/WriteDmMotorPositionControlWithSpeedLimitGrouped.msg"
         "msg/WriteDmMotorSpeedControl.msg"
 
         "msg/ReadSuperCap.msg"
