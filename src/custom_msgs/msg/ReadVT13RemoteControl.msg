@@ -1,4 +1,5 @@
 std_msgs/Header header
+uint8 online
 
 float32 right_joystick_x
 float32 right_joystick_y
