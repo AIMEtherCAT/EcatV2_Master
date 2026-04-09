@@ -31,6 +31,7 @@
 #include "custom_msgs/msg/write_super_cap.hpp"
 #include "custom_msgs/msg/read_canpmu.hpp"
 #include "custom_msgs/msg/read_vt13_rc.hpp"
+#include "custom_msgs/msg/read_ms5837_ba30.hpp"
 
 namespace aim::ecat {
     class SlaveDevice;
@@ -285,32 +286,26 @@ namespace aim::ecat::task {
         constexpr uint8_t MS5837_30BA_OSR_4096 = 0x05;
         constexpr uint8_t MS5837_30BA_OSR_8192 = 0x06;
 
-        // TODO: task waiting for test
-        // struct MS5837_30BA {
-        //     static constexpr uint8_t type_id = MS5837_30BA_APP_ID;
-        //     static constexpr auto type_enum = "MS5837_30BA";
-        //
-        //     static void
-        //     init_sdo(uint8_t *buf, int *offset, const uint32_t & /*sn*/, const uint8_t /*slave_id*/,
-        //              const std::string &prefix) {
-        //         memcpy(buf + *offset,
-        //                sdo_data.build_buf(fmt::format("{}sdowrite_", prefix),
-        //                                   {"i2c_id", "osr_id"}),
-        //                2);
-        //         *offset += 2;
-        //         node->create_and_insert_publisher<custom_msgs::msg::ReadMS5837BA30>(prefix);
-        //     }
-        //
-        //     static void
-        //     read(const uint8_t *buf, int *offset, const std::string &prefix) {
-        //         custom_msgs_readms5837ba30_shared_msg.header.stamp = rclcpp::Clock().now();
-        //
-        //         custom_msgs_readms5837ba30_shared_msg.temperature = read_int32(buf, offset) / 100.;
-        //         custom_msgs_readms5837ba30_shared_msg.pressure = read_int32(buf, offset) / 10.;
-        //
-        //         EthercatNode::publish_msg<custom_msgs::msg::ReadMS5837BA30>(prefix, custom_msgs_readms5837ba30_shared_msg);
-        //     }
-        // };
+        class MS5837_30BA final : public TaskWrapper {
+            static custom_msgs::msg::ReadMS5837BA30 custom_msgs_readms5837ba30_shared_msg;
+            rclcpp::Publisher<custom_msgs::msg::ReadMS5837BA30>::SharedPtr publisher_{};
+
+        public:
+            MS5837_30BA() : TaskWrapper(MS5837_30BA_APP_ID, "MS5837_30BA", true, false) {
+            }
+
+            void cleanup() override {
+                if (publisher_) {
+                    publisher_.reset();
+                }
+            }
+
+            void init_sdo(uint8_t *buf, int *offset, uint16_t slave_id, const std::string &prefix) override;
+
+            void publish_empty_message() override;
+
+            void read() override;
+        };
     }
 
     namespace lk_motor {
