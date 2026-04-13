@@ -50,6 +50,7 @@ add_executable(soem_backend
         src/tasks/super_cap.cpp
         src/tasks/vt13_rc.cpp
         src/tasks/pmu_can.cpp
+        src/tasks/dd_motor.cpp
 
         src/utils/io_utils.cpp
         src/utils/logger_utils.cpp

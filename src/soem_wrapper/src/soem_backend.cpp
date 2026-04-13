@@ -253,6 +253,10 @@ namespace aim::ecat {
                     task_wrapper = std::make_unique<task::ms5837::MS5837_30BA>();
                     break;
                 }
+                case task::DD_MOTOR_APP_ID: {
+                    task_wrapper = std::make_unique<task::dd_motor::DD_MOTOR>();
+                    break;
+                }
                 default: {
                     RCLCPP_ERROR(*get_cfg_logger(), "Unknown task type = %d", task_type);
                 }

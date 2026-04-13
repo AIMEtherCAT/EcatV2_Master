@@ -33,6 +33,8 @@
 #include "custom_msgs/msg/read_vt13_rc.hpp"
 #include "custom_msgs/msg/read_ms5837_ba30.hpp"
 #include "custom_msgs/msg/write_external_pwm.hpp"
+#include "custom_msgs/msg/read_dd_motor.hpp"
+#include "custom_msgs/msg/write_dd_motor.hpp"
 
 namespace aim::ecat {
     class SlaveDevice;
@@ -54,6 +56,7 @@ namespace aim::ecat::task {
     constexpr uint8_t DM_MOTOR_APP_ID = 12;
     constexpr uint8_t SUPER_CAP_APP_ID = 13;
     constexpr uint8_t VT13_RC_APP_ID = 14;
+    constexpr uint8_t DD_MOTOR_APP_ID = 15;
 
     class TaskWrapper {
         uint8_t type_id_ = 0;
@@ -604,6 +607,40 @@ namespace aim::ecat::task {
                     publisher_.reset();
                 }
             }
+        };
+    }
+
+    namespace dd_motor {
+        class DD_MOTOR final : public TaskWrapper {
+            static custom_msgs::msg::ReadDDMotor custom_msgs_readddmotor_shared_msg;
+            rclcpp::Publisher<custom_msgs::msg::ReadDDMotor>::SharedPtr publisher_{};
+            rclcpp::Subscription<custom_msgs::msg::WriteDDMotor>::SharedPtr subscriber_{};
+
+            bool is_motor_enabled[4]{false, false, false, false};
+
+            void on_command(custom_msgs::msg::WriteDDMotor::SharedPtr msg) const;
+
+        public:
+            DD_MOTOR() : TaskWrapper(DD_MOTOR_APP_ID, "DD_MOTOR", true, true) {
+            }
+
+            void cleanup() override {
+                if (publisher_) {
+                    publisher_.reset();
+                }
+
+                if (subscriber_) {
+                    subscriber_.reset();
+                }
+            }
+
+            void init_sdo(uint8_t *buf, int *offset, uint16_t slave_id, const std::string &prefix) override;
+
+            void publish_empty_message() override;
+
+            void init_value() override;
+
+            void read() override;
         };
     }
 }
