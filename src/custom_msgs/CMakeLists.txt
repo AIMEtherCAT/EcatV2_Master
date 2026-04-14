@@ -48,6 +48,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/ReadSuperCap.msg"
         "msg/WriteSuperCap.msg"
 
+        "msg/WriteDDMotor.msg"
+        "msg/ReadDDMotor.msg"
+
         DEPENDENCIES
         std_msgs
         geometry_msgs
