@@ -47,7 +47,10 @@ namespace aim::utils::sys {
                                  "Move %d %s to cpu %s", pid, comm.c_str(), cpu_list.c_str());
                     std::string taskset_cmd = "sudo taskset -cp " + cpu_list + " " + std::to_string(pid) +
                                               " > /dev/null 2>&1";
-                    system(taskset_cmd.c_str());
+                    int ret = system(taskset_cmd.c_str());
+                    if (ret != 0) {
+                        RCLCPP_WARN(*get_sys_logger(), "Failed to move thread %d to cpu %s", pid, cpu_list.c_str());
+                    }
                 }
             }
         }
