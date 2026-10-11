@@ -10,7 +10,7 @@ namespace aim::ecat::task {
     using namespace utils::config;
     
     void TaskWrapper::load_slave_info(const uint16_t slave_id, const std::string &prefix) {
-        slave_device_ = get_slave_device(slave_id);
+        slave_device_ = std::static_pointer_cast<device::AimUniversalModule>(get_slave_device(slave_id));
 
         pdoread_offset_ = get_field_as<uint16_t>(
             *get_configuration_data(),

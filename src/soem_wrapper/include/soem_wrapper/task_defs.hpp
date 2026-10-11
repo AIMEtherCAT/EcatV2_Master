@@ -36,8 +36,8 @@
 #include "custom_msgs/msg/read_dd_motor.hpp"
 #include "custom_msgs/msg/write_dd_motor.hpp"
 
-namespace aim::ecat {
-    class SlaveDevice;
+namespace aim::ecat::device {
+    class AimUniversalModule;
 }
 
 namespace aim::ecat::task {
@@ -65,7 +65,7 @@ namespace aim::ecat::task {
         bool has_subscribers_{false};
 
     protected:
-        std::shared_ptr<SlaveDevice> slave_device_;
+        std::shared_ptr<device::AimUniversalModule> slave_device_;
         uint16_t pdowrite_offset_ = 0;
         uint16_t pdoread_offset_ = 0;
         uint8_t connection_lost_read_action_ = 0;
@@ -123,7 +123,7 @@ namespace aim::ecat::task {
 
     namespace dbus_rc {
         class DBUS_RC final : public TaskWrapper {
-            static custom_msgs::msg::ReadDJIRC custom_msgs_readdjirc_shared_msg;
+            custom_msgs::msg::ReadDJIRC custom_msgs_readdjirc_shared_msg{};
             rclcpp::Publisher<custom_msgs::msg::ReadDJIRC>::SharedPtr publisher_{};
 
         public:
@@ -146,7 +146,7 @@ namespace aim::ecat::task {
 
     namespace hipnuc_imu {
         class HIPNUC_IMU_CAN final : public TaskWrapper {
-            static sensor_msgs::msg::Imu sensor_msgs_imu_shared_msg;
+            sensor_msgs::msg::Imu sensor_msgs_imu_shared_msg{};
             rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr publisher_{};
 
             std::string conf_frame_name_{};
@@ -175,7 +175,7 @@ namespace aim::ecat::task {
         constexpr uint8_t DJIMOTOR_CTRL_TYPE_SINGLE_ROUND_POSITION = 0x03;
 
         class DJI_MOTOR final : public TaskWrapper {
-            static custom_msgs::msg::ReadDJIMotor custom_msgs_readdjimotor_shared_msg;
+            custom_msgs::msg::ReadDJIMotor custom_msgs_readdjimotor_shared_msg{};
             rclcpp::Publisher<custom_msgs::msg::ReadDJIMotor>::SharedPtr publisher_{};
             rclcpp::Subscription<custom_msgs::msg::WriteDJIMotor>::SharedPtr subscriber_{};
 
@@ -285,7 +285,7 @@ namespace aim::ecat::task {
         constexpr uint8_t MS5837_30BA_OSR_8192 = 0x06;
 
         class MS5837_30BA final : public TaskWrapper {
-            static custom_msgs::msg::ReadMS5837BA30 custom_msgs_readms5837ba30_shared_msg;
+            custom_msgs::msg::ReadMS5837BA30 custom_msgs_readms5837ba30_shared_msg{};
             rclcpp::Publisher<custom_msgs::msg::ReadMS5837BA30>::SharedPtr publisher_{};
 
         public:
@@ -319,8 +319,8 @@ namespace aim::ecat::task {
         class LK_MOTOR final : public TaskWrapper {
             bool is_broadcast_mode_{false};
 
-            static custom_msgs::msg::ReadLkMotor custom_msgs_readlkmotor_shared_msg;
-            static custom_msgs::msg::ReadLkMotorMulti custom_msgs_readlkmotormulti_shared_msg;
+            custom_msgs::msg::ReadLkMotor custom_msgs_readlkmotor_shared_msg{};
+            custom_msgs::msg::ReadLkMotorMulti custom_msgs_readlkmotormulti_shared_msg{};
 
             rclcpp::Publisher<custom_msgs::msg::ReadLkMotor>::SharedPtr publisher_single_motor_{};
             rclcpp::Publisher<custom_msgs::msg::ReadLkMotorMulti>::SharedPtr publisher_multi_motor_{};
@@ -443,7 +443,7 @@ namespace aim::ecat::task {
 
     namespace pmu_uavcan {
         class PMU_CAN final : public TaskWrapper {
-            static custom_msgs::msg::ReadCANPMU custom_msgs_readcanpmu_shared_msg;
+            custom_msgs::msg::ReadCANPMU custom_msgs_readcanpmu_shared_msg{};
             rclcpp::Publisher<custom_msgs::msg::ReadCANPMU>::SharedPtr publisher_{};
 
         public:
@@ -466,7 +466,7 @@ namespace aim::ecat::task {
 
     namespace sbus_rc {
         class SBUS_RC final : public TaskWrapper {
-            static custom_msgs::msg::ReadSBUSRC custom_msgs_readsbusrc_shared_msg;
+            custom_msgs::msg::ReadSBUSRC custom_msgs_readsbusrc_shared_msg{};
             rclcpp::Publisher<custom_msgs::msg::ReadSBUSRC>::SharedPtr publisher_{};
 
         public:
@@ -493,7 +493,7 @@ namespace aim::ecat::task {
         constexpr uint8_t DM_CTRL_TYPE_SPEED = 0x03;
 
         class DM_MOTOR final : public TaskWrapper {
-            static custom_msgs::msg::ReadDmMotor custom_msgs_readdmmotor_shared_msg;
+            custom_msgs::msg::ReadDmMotor custom_msgs_readdmmotor_shared_msg{};
 
             rclcpp::Publisher<custom_msgs::msg::ReadDmMotor>::SharedPtr publisher_{};
 
@@ -557,7 +557,7 @@ namespace aim::ecat::task {
         };
 
         class SUPER_CAP final : public TaskWrapper {
-            static custom_msgs::msg::ReadSuperCap custom_msgs_readsupercap_shared_msg;
+            custom_msgs::msg::ReadSuperCap custom_msgs_readsupercap_shared_msg{};
 
             rclcpp::Publisher<custom_msgs::msg::ReadSuperCap>::SharedPtr publisher_{};
             rclcpp::Subscription<custom_msgs::msg::WriteSuperCap>::SharedPtr subscriber_{};
@@ -589,7 +589,7 @@ namespace aim::ecat::task {
 
     namespace vt13_rc {
         class VT13_RC final : public TaskWrapper {
-            static custom_msgs::msg::ReadVT13RC custom_msgs_readvt13rc_shared_msg;
+            custom_msgs::msg::ReadVT13RC custom_msgs_readvt13rc_shared_msg{};
             rclcpp::Publisher<custom_msgs::msg::ReadVT13RC>::SharedPtr publisher_{};
 
         public:
@@ -612,7 +612,7 @@ namespace aim::ecat::task {
 
     namespace dd_motor {
         class DD_MOTOR final : public TaskWrapper {
-            static custom_msgs::msg::ReadDDMotor custom_msgs_readddmotor_shared_msg;
+            custom_msgs::msg::ReadDDMotor custom_msgs_readddmotor_shared_msg{};
             rclcpp::Publisher<custom_msgs::msg::ReadDDMotor>::SharedPtr publisher_{};
             rclcpp::Subscription<custom_msgs::msg::WriteDDMotor>::SharedPtr subscriber_{};
 
