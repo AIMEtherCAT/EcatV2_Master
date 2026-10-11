@@ -72,8 +72,6 @@ The services below send the corresponding command, and respond after the device 
     * Zero the channel by the PDO command, ``SBT908ECommand``.
 * ``<pub_topic>/clear_peak``
     * Clear the peak value by the PDO command, ``SBT908ECommand``.
-* ``<pub_topic>/clear_valley``
-    * Clear the valley value by the PDO command, ``SBT908ECommand``.
 * ``<pub_topic>/set_calibration_parameters``
     * Set the unit, the division and the max weighing value by the SDO command (9.6.1 of the manual),
       ``SBT908ESetCalibrationParameters``.

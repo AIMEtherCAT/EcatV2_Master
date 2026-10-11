@@ -25,7 +25,7 @@ namespace aim::ecat::device::vendor {
     /**
      * SBT908E digital loadcell amplifier
      * publishes the gross force and the peak value of the configured channels at most 2000 times per second,
-     * provides services to zero / clear peak / clear valley through the pdo command,
+     * provides services to zero / clear peak through the pdo command,
      * and to set the calibration parameters / calibrate the zero point / the gain / the sensitivity through the
      * sdo command (sdo only commands, manual 9.6.1 - 9.6.4),
      * the service is answered after the execution result is reported by the slave
@@ -97,7 +97,6 @@ namespace aim::ecat::device::vendor {
         static constexpr uint32_t COMMAND_NONE = 0;
         static constexpr uint32_t COMMAND_ZERO = 1;
         static constexpr uint32_t COMMAND_CLEAR_PEAK = 3;
-        static constexpr uint32_t COMMAND_CLEAR_VALLEY = 4;
         static constexpr uint32_t COMMAND_CLEAR_FLAGS = 30;
         // timeout of each phase (clearing the execution flags / waiting for the execution result)
         static constexpr int64_t COMMAND_TIMEOUT_NS = 500'000'000;

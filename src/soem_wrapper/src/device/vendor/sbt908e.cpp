@@ -190,7 +190,6 @@ namespace aim::ecat::device::vendor {
 
         create_command_service(ctx.node, srv_prefix + "/zero", COMMAND_ZERO);
         create_command_service(ctx.node, srv_prefix + "/clear_peak", COMMAND_CLEAR_PEAK);
-        create_command_service(ctx.node, srv_prefix + "/clear_valley", COMMAND_CLEAR_VALLEY);
         create_sdo_command_services(ctx.node, srv_prefix);
         sdo_worker_ = &ctx.sdo_worker;
         response_timer_ = ctx.node.create_wall_timer(std::chrono::milliseconds(5), [this] {
