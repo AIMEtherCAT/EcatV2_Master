@@ -3,6 +3,8 @@
 //
 #include "soem_wrapper/ecat_node.hpp"
 #include "soem_wrapper/wrapper.hpp"
+#include "soem_wrapper/device/aim_universal_module.hpp"
+#include "soem_wrapper/device/vendor/sbt908e.hpp"
 #include "soem_wrapper/utils/io_utils.hpp"
 #include "soem_wrapper/utils/sys_utils.hpp"
 #include "soem_wrapper/utils/logger_utils.hpp"
@@ -59,16 +61,19 @@ namespace aim::ecat {
     }
 
     void EthercatNode::on_shutdown() {
+        std::call_once(shutdown_once_, &EthercatNode::do_shutdown, this);
+    }
+
+    void EthercatNode::do_shutdown() {
         RCLCPP_INFO(*logging::get_sys_logger(), "Shutting down");
 
         exiting_ = true;
-        // wait until reset command sent
-        while (!exiting_reset_called_) {
-            rclcpp::sleep_for(std::chrono::milliseconds(10));
+        while (!exiting_reset_called_ && data_thread_.joinable()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
         // then wait for another 100ms for slaves to reset actuators
-        rclcpp::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         RCLCPP_INFO(*logging::get_data_logger(), "Stop data cycle");
         running_ = false;
@@ -78,6 +83,8 @@ namespace aim::ecat {
         if (checker_thread_.joinable()) {
             checker_thread_.join();
         }
+        // wait for the running sdo job before the master is closed
+        sdo_worker_.stop();
 
         ec_slave[0].state = EC_STATE_INIT;
         ec_writestate(0);
@@ -120,7 +127,6 @@ namespace aim::ecat {
         RCLCPP_INFO(*logging::get_sys_logger(), "setup nic finished");
 
         bool all_slave_ready = false;
-        rclcpp::Time current_time{};
 
         // all settings updated, mark data cycle as operational
         in_operational_ = true;
@@ -132,7 +138,7 @@ namespace aim::ecat {
             // transfer data from ecat stack into buffer managed by ourselves
             for (const auto &slave: get_slave_devices()) {
                 std::lock_guard lock(slave->mtx_);
-                slave->receive_from_slave();
+                slave->on_receive();
             }
 
             // check if all slaves are all ready
@@ -142,9 +148,7 @@ namespace aim::ecat {
                 // check state of all slaves
                 for (const auto &slave: get_slave_devices()) {
                     std::lock_guard lock(slave->mtx_);
-                    if (*slave->get_slave_status_ptr()
-                        < SLAVE_CONFIRM_READY
-                        || !slave->is_ready()) {
+                    if (!slave->is_ready()) {
                         // any one not ready, mark the final result as not ready
                         all_ready = false;
                         break;
@@ -160,84 +164,36 @@ namespace aim::ecat {
             }
 
             // process pdo device by devices
+            const rclcpp::Time current_time = data_clock_.now();
+            const device::CycleContext cycle_ctx{current_time};
             for (const auto &slave: get_slave_devices()) {
                 std::lock_guard lock(slave->mtx_);
-
-                // if this device is not fully configured, skip pdo processing
-                if (slave->is_conf_ros_done() == 0
-                    || slave->is_ecat_conf_done() == 0) {
-                    continue;
-                }
-
-                // slave report that all args are well-received
-                if (*slave->get_slave_status_ptr() == SLAVE_CONFIRM_READY
-                    && !slave->is_ready()) {
-                    RCLCPP_INFO(*logging::get_data_logger(), "Slave id=%d confirmed ready", slave->get_index());
-                    slave->set_ready(true);
-                }
-
-                // sending args
-                // master will send arg bytes one by one
-                // slave will send what it receives back to the master
-                // to ensure the data is correct
-                if (*slave->get_master_status_ptr() == MASTER_SENDING_ARGUMENTS
-                    && !slave->is_arg_sent()) {
-                    slave->send_arg();
-                }
-
-                // if slave not ready before
-                // but updated to ready in this cycle
-                if (!slave->is_ready()
-                    && slave->is_arg_sent()
-                    && *slave->get_slave_status_ptr() == SLAVE_READY) {
-                    // write initial value for each app
-                    // only write in first initialization
-                    if (*slave->get_master_status_ptr() != MASTER_READY) {
-                        if (slave->get_reconnected_times() == 0) {
-                            slave->write_init_values();
-                        } else {
-                            slave->recover_master_to_slave_buf();
-                            RCLCPP_INFO(*logging::get_health_checker_logger(),
-                                        "Slave id=%d master to slave buf recovered", slave->get_index());
-                        }
-
-                        // after this slave will go into normal working state
-                        RCLCPP_INFO(*logging::get_data_logger(),
-                                    "Slave id=%d sdo confirmed received", slave->get_index());
-                    }
-
-                    *slave->get_master_status_ptr() = MASTER_READY;
-                }
-
-                // if slave is ready/working
-                if (slave->is_ready()) {
-                    current_time = rclcpp::Clock().now();
-                    slave->process_pdo(current_time);
+                if (slave->is_configured()) {
+                    slave->on_cycle(cycle_ctx);
                 }
             }
 
-            // if configuration is finished and exiting
-            // then override all tasks with the init value
-            // thereby resetting all the actuators in the slave
-            if (exiting_ && !exiting_reset_called_) {
-                for (const auto &slave: get_slave_devices()) {
-                    if (slave->is_arg_sent()) {
-                        slave->write_init_values();
-                        RCLCPP_INFO(*logging::get_data_logger(), "Slave id=%d exit reset command sent",
-                                    slave->get_index());
-                    }
-                }
-                exiting_reset_called_ = true;
-            }
+            // if exiting, override all outputs with the safe value in every cycle
+            // thereby resetting all the actuators in the slave,
+            // done in the same lock as the transfer so ros callbacks can't overwrite it in between
+            const bool exiting = exiting_;
 
             // transfer pdo data from buffer managed by ourselves info ecat stack
             for (const auto &slave: get_slave_devices()) {
                 std::lock_guard lock(slave->mtx_);
-                slave->transfer_to_slave();
+                if (exiting) {
+                    slave->write_safe_outputs();
+                }
+                slave->on_transmit();
             }
 
             // send ecat frame
             ec_send_processdata();
+
+            if (exiting && !exiting_reset_called_) {
+                RCLCPP_INFO(*logging::get_data_logger(), "Exit reset command sent to all slaves");
+                exiting_reset_called_ = true;
+            }
         }
 
         // destroy all publisher and subscriber
@@ -322,6 +278,29 @@ namespace aim::ecat {
                                 std::lock_guard lock(slave->mtx_);
                                 slave->reset_state();
                             }
+                        } else if (ec_slave[slave_idx].state > EC_STATE_NONE
+                                   && !slave->is_recover_rejected()) {
+                            // other states, e.g. SAFE_OP + ERROR caused by the sm watchdog, or PRE_OP
+                            // handle it like a connection loss and request INIT with error ack,
+                            // the INIT branch above will then reconfigure the slave the same way as a power cycle
+                            RCLCPP_WARN_THROTTLE(*logging::get_health_checker_logger(),
+                                                 *get_clock(),
+                                                 1500,
+                                                 "Slave idx=%d in state 0x%02x, AL status=0x%04x (%s), requesting INIT",
+                                                 slave_idx,
+                                                 ec_slave[slave_idx].state,
+                                                 ec_slave[slave_idx].ALstatuscode,
+                                                 ec_ALstatuscode2string(ec_slave[slave_idx].ALstatuscode));
+                            {
+                                std::lock_guard lock(slave->mtx_);
+                                // only run the lost actions once, the slave is not ready after reset_state
+                                if (slave->is_ready()) {
+                                    slave->reset_state();
+                                    slave->on_connection_lost();
+                                }
+                            }
+                            ec_slave[slave_idx].state = EC_STATE_INIT + EC_STATE_ACK;
+                            ec_writestate(slave_idx);
                         } else if (!ec_slave[slave_idx].islost) {
                             if (ec_slave[slave_idx].state == EC_STATE_NONE) {
                                 RCLCPP_ERROR(*logging::get_health_checker_logger(), "Slave idx=%d lost", slave_idx);
@@ -330,7 +309,6 @@ namespace aim::ecat {
                                 std::lock_guard lock(slave->mtx_);
                                 slave->reset_state();
                                 slave->on_connection_lost();
-                                slave->backup_master_to_slave_buf();
                             }
                         }
                     }
@@ -340,6 +318,8 @@ namespace aim::ecat {
                             if (ec_recover_slave(slave_idx, 500)) {
                                 ec_slave[slave_idx].islost = FALSE;
                                 RCLCPP_INFO(*logging::get_health_checker_logger(), "Slave idx=%d recovered", slave_idx);
+
+                                std::lock_guard lock(slave->mtx_);
                                 slave->recover_state();
                             }
                         } else {
@@ -365,11 +345,15 @@ namespace aim::ecat {
 
         if (ec_config_init(FALSE) <= 0) {
             RCLCPP_ERROR(*logging::get_cfg_logger(), "No slaves found!");
+            ec_close();
             return false;
         }
 
         RCLCPP_INFO(*logging::get_cfg_logger(), "%d slaves found", ec_slavecount);
-        init_slave_devices_vector(ec_slavecount);
+        if (!init_slave_devices_vector(ec_slavecount)) {
+            ec_close();
+            return false;
+        }
         // write back to init state
         for (int i = 1; i <= ec_slavecount; i++) {
             ec_slave[i].state = EC_STATE_INIT;
@@ -386,11 +370,30 @@ namespace aim::ecat {
         }
 
         // conf io map
-        ec_config_map(&IOmap_);
+        const int iomap_size = ec_config_map(&IOmap_);
+        if (iomap_size > static_cast<int>(sizeof(IOmap_))) {
+            RCLCPP_ERROR(*logging::get_cfg_logger(),
+                         "IO map size %d exceeds the buffer size %zu",
+                         iomap_size,
+                         sizeof(IOmap_));
+            ec_close();
+            return false;
+        }
         ec_configdc();
 
+        device::SetupContext setup_ctx{
+            .node = *this,
+            .config = *get_configuration_data(),
+            .sdo_worker = sdo_worker_
+        };
         for (const auto &device: get_slave_devices()) {
-            if (!device->init_task_list()) {
+            device->post_map();
+            if (!device->setup(setup_ctx)) {
+                RCLCPP_ERROR(*logging::get_cfg_logger(),
+                             "Slave id=%d (%s) setup failed",
+                             device->get_index(),
+                             device->get_name().c_str());
+                ec_close();
                 return false;
             }
         }
@@ -417,37 +420,55 @@ namespace aim::ecat {
         } while (chk-- && ec_slave[0].state != EC_STATE_OPERATIONAL);
 
         // pre-final-op state check
-        if (ec_slave[0].state == EC_STATE_OPERATIONAL) {
-            RCLCPP_INFO(*logging::get_cfg_logger(), "Operational state reached for all slaves.");
-            data_thread_ = std::thread(&EthercatNode::datacycle_callback, this);
-            checker_thread_ = std::thread(&EthercatNode::state_check_callback, this);
+        if (ec_slave[0].state != EC_STATE_OPERATIONAL) {
+            ec_readstate();
+            for (int i = 1; i <= ec_slavecount; i++) {
+                if (ec_slave[i].state != EC_STATE_OPERATIONAL) {
+                    RCLCPP_ERROR(*logging::get_cfg_logger(),
+                                 "Slave id=%d not operational, state=0x%02x, AL status=0x%04x (%s)",
+                                 i,
+                                 ec_slave[i].state,
+                                 ec_slave[i].ALstatuscode,
+                                 ec_ALstatuscode2string(ec_slave[i].ALstatuscode));
+                }
+            }
+            ec_slave[0].state = EC_STATE_INIT;
+            ec_writestate(0);
+            ec_close();
+            return false;
         }
+
+        RCLCPP_INFO(*logging::get_cfg_logger(), "Operational state reached for all slaves.");
+        for (const auto &device: get_slave_devices()) {
+            std::lock_guard lock(device->mtx_);
+            device->on_op_reached();
+        }
+        sdo_worker_.start();
+        data_thread_ = std::thread(&EthercatNode::datacycle_callback, this);
+        checker_thread_ = std::thread(&EthercatNode::state_check_callback, this);
 
         return true;
     }
 
     void EthercatNode::register_components() {
-        // deprecated
-        // register_module(1, "FlightModule", 16, 40, 001);
-        // register_module(2, "MotorModule", 56, 80, 001);
-        register_module(3, "H750UniversalModule", 80, 80, 8);
-        register_module(4, "H750UniversalModule (Large PDO V.)", 80, 112, 8);
-    }
+        register_device<device::AimUniversalModule>(device::AIM_VENDOR_ID, 3,
+                                                    "H750UniversalModule",
+                                                    device::AimModuleSpec{
+                                                        .master_to_slave_buf_len = 80,
+                                                        .slave_to_master_buf_len = 80,
+                                                        .min_sw_rev = 8
+                                                    });
+        register_device<device::AimUniversalModule>(device::AIM_VENDOR_ID, 4,
+                                                    "H750UniversalModule (Large PDO V.)",
+                                                    device::AimModuleSpec{
+                                                        .master_to_slave_buf_len = 80,
+                                                        .slave_to_master_buf_len = 112,
+                                                        .min_sw_rev = 8
+                                                    });
 
-    void EthercatNode::register_module(const uint32_t eep_id,
-                                       const std::string &module_name,
-                                       const int master_to_slave_buf_len,
-                                       const int slave_to_master_buf_len,
-                                       const int min_sw_rev) {
-        RCLCPP_INFO(*logging::get_wrapper_logger(),
-                    "Registered new module, eepid=%d, name=%s, m2slen=%d, s2mlen=%d",
-                    eep_id,
-                    module_name.c_str(),
-                    master_to_slave_buf_len,
-                    slave_to_master_buf_len);
-        registered_module_names[eep_id] = module_name;
-        registered_module_buf_lens[eep_id] =
-                std::make_pair(master_to_slave_buf_len, slave_to_master_buf_len);
-        registered_module_sw_rev[eep_id] = min_sw_rev;
+        // third-party devices
+        register_device<device::vendor::SBT908E>(device::vendor::SBT908E_VENDOR_ID,
+                                                 device::vendor::SBT908E_PRODUCT_CODE,
+                                                 "SBT908E");
     }
 }

@@ -32,6 +32,8 @@ tutorials in the following order:
     * Creating a Bringup package, flashing EEPROMs, and running your first test node.
 * Custom Configuration: [3. Customize configuration](docs/configuration-generator.md)
     * Generate and customize the YAML configuration files based on your hardware topology.
+* Third-party Devices: [4. Third-party EtherCAT devices](docs/third-party-device.md)
+    * Use EtherCAT slaves from other manufacturers in the same ring.
 
 **FAQ: If you encounter issues, please check [0. FAQ](docs/faq.md) first.**
 
