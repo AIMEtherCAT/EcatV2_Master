@@ -12,8 +12,6 @@ namespace aim::ecat::task {
     using namespace utils::config;
     using namespace dm_motor;
 
-    custom_msgs::msg::ReadDmMotor DM_MOTOR::custom_msgs_readdmmotor_shared_msg;
-
     void DM_MOTOR::init_sdo(uint8_t *buf, int *offset, const uint16_t slave_id, const std::string &prefix) {
         auto [sdo_buf, sdo_len] = get_configuration_data()->build_buf(fmt::format("{}sdowrite_", prefix),
                                                                       {
@@ -105,7 +103,13 @@ namespace aim::ecat::task {
         publisher_->publish(custom_msgs_readdmmotor_shared_msg);
     }
 
-    static int float_to_uint(const float x_float, const float x_min, const float x_max, const int bits) { // NOLINT
+    static int float_to_uint(float x_float, const float x_min, const float x_max, const int bits) { // NOLINT
+        // clamp the input, otherwise out of range values wrap around after the uint conversion
+        if (x_float < x_min) {
+            x_float = x_min;
+        } else if (x_float > x_max) {
+            x_float = x_max;
+        }
         const float span = x_max - x_min;
         const float offset = x_min;
         return static_cast<int>((x_float - offset) * static_cast<float>((1 << bits) - 1) / span);
@@ -212,7 +216,7 @@ namespace aim::ecat::task {
         int offset = pdowrite_offset_;
 
         write_uint8(msg->enable, slave_device_->get_master_to_slave_buf().data(), &offset);
-        static uint8_t WriteDmMotorMITControl_data[8] = {};
+        uint8_t WriteDmMotorMITControl_data[8] = {};
 
         const uint16_t writeDmMotorMITControl_pos = float_to_uint(msg->p_des,
                                                                   -pmax_,

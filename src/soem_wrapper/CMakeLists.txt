@@ -36,6 +36,12 @@ add_compile_definitions(GIT_HASH="${GIT_HASH}")
 add_executable(soem_backend
         src/soem_backend.cpp
         src/ecat_node.cpp
+        src/sdo_worker.cpp
+
+        src/device/slave_device.cpp
+        src/device/device_registry.cpp
+        src/device/aim_universal_module.cpp
+        src/device/vendor/sbt908e.cpp
 
         src/tasks/dji_motor.cpp
         src/tasks/dji_rc.cpp

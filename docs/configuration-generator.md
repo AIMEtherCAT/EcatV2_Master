@@ -51,19 +51,23 @@ ROS2 message type(s):
 They're tested by various test cases, and should be working fine.
 
 * RCs
-    * [DJI RC](task-info/dji-rc.md)
-    * [SBUS RC](task-info/sbus-rc.md)
+  * [DJI RC](task-info/dji-rc.md)
+  * [SBUS RC](task-info/sbus-rc.md)
 
 * Sensors
-    * [HIPNUC IMU (CAN)](task-info/hipnuc-imu-can.md)
+  * [HIPNUC IMU (CAN)](task-info/hipnuc-imu-can.md)
+  * [PMU (CAN)](task-info/pmu-can.md)
+  * [SUPER CAP (CAN)](task-info/super-cap.md)
+  * [MS5837 (30BA)](task-info/ms5837-30ba.md)
 
 * Actuators
-    * [DSHOT600](task-info/dshot.md)
-    * [DJI Motor](task-info/dji-motor.md)
-    * [DM Motor](task-info/dm-motor.md)
-    * [LkTech Motor](task-info/lk-motor.md)
-    * [DD Motor](task-info/dd-motor.md)
-    * [Onboard PWM](task-info/onboard-pwm.md)
+  * [DSHOT600](task-info/dshot.md)
+  * [DJI Motor](task-info/dji-motor.md)
+  * [DM Motor](task-info/dm-motor.md)
+  * [LkTech Motor](task-info/lk-motor.md)
+  * [DD Motor](task-info/dd-motor.md)
+  * [Onboard PWM](task-info/onboard-pwm.md)
+  * [External PWM](task-info/external-pwm.md)
 
 #### Untested tasks :(
 
@@ -72,13 +76,10 @@ They're probably not working or are not working properly.
 Testing is in progress and will be updated.
 
 * Sensors:
-    * [~~MS5837 (30BA)~~ **UNTESTED](task-info/ms5837-30ba.md)
-    * [~~Onboard ADC~~ **UNTESTED](task-info/onboard-adc.md)
-    * [~~PMU (CAN)~~ **UNTESTED](task-info/pmu-can.md)
-    * [SUPER CAP (CAN) **UNTESTED](task-info/super-cap.md)
+  * [~~Onboard ADC~~ **UNTESTED](task-info/onboard-adc.md)
 
 * Actuators:
-    * [~~External PWM~~ **UNTESTED](task-info/external-pwm.md)
+  * ...
 
 ### Download Configuration File
 
@@ -116,8 +117,3 @@ You can now launch your application with your customized configuration file if e
 You should be able to see all topics related to your configured tasks, including publishers and subscribers.
 
 If you want to send a command to any task, publish the corresponding message type into the corresponding topic.
-
-### Example
-
-~~If needed, you can refer to the example tutorial about creating an application that could control a DJI motor in speed
-mode.~~ (To be updated)

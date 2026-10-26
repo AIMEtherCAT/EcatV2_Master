@@ -12,8 +12,6 @@ namespace aim::ecat::task {
     using namespace utils::config;
     using namespace pmu_uavcan;
 
-    custom_msgs::msg::ReadCANPMU PMU_CAN::custom_msgs_readcanpmu_shared_msg;
-
     void PMU_CAN::init_sdo(uint8_t * /* buf */, int * /* offset */, const uint16_t slave_id,
                            const std::string &prefix) {
         load_slave_info(slave_id, prefix);
