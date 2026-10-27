@@ -9,6 +9,8 @@
 #define MS5837_30BA_APP_ID 8
 #define ADC_APP_ID 9
 #define CAN_PMU_APP_ID 10
+#define DM_MOTOR_APP_ID 12
+#define DM_MOTOR_CANFD_APP_ID 16
 
 #define CAN_PORT_1 1
 #define CAN_PORT_2 2

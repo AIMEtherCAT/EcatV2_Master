@@ -224,6 +224,10 @@ namespace aim::ecat::device {
                     task_wrapper = std::make_unique<task::dm_motor::DM_MOTOR>();
                     break;
                 }
+                case task::DM_MOTOR_CANFD_APP_ID: {
+                    task_wrapper = std::make_unique<task::dm_motor::DM_MOTOR_CANFD>();
+                    break;
+                }
                 case task::SUPER_CAP_APP_ID: {
                     task_wrapper = std::make_unique<task::super_cap::SUPER_CAP>();
                     break;

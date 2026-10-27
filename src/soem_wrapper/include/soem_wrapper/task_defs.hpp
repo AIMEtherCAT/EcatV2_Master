@@ -57,6 +57,7 @@ namespace aim::ecat::task {
     constexpr uint8_t SUPER_CAP_APP_ID = 13;
     constexpr uint8_t VT13_RC_APP_ID = 14;
     constexpr uint8_t DD_MOTOR_APP_ID = 15;
+    constexpr uint8_t DM_MOTOR_CANFD_APP_ID = 16;
 
     class TaskWrapper {
         uint8_t type_id_ = 0;
@@ -492,7 +493,7 @@ namespace aim::ecat::task {
         constexpr uint8_t DM_CTRL_TYPE_POSITION_WITH_SPEED_LIMIT = 0x02;
         constexpr uint8_t DM_CTRL_TYPE_SPEED = 0x03;
 
-        class DM_MOTOR final : public TaskWrapper {
+        class DM_MOTOR : public TaskWrapper {
             custom_msgs::msg::ReadDmMotor custom_msgs_readdmmotor_shared_msg{};
 
             rclcpp::Publisher<custom_msgs::msg::ReadDmMotor>::SharedPtr publisher_{};
@@ -514,7 +515,13 @@ namespace aim::ecat::task {
             float tmax_ = 0.0f;
 
         public:
-            DM_MOTOR() : TaskWrapper(DM_MOTOR_APP_ID, "DM_MOTOR", true, true) {
+        protected:
+            DM_MOTOR(const uint8_t type_id, const std::string &type_name)
+                : TaskWrapper(type_id, type_name, true, true) {
+            }
+
+        public:
+            DM_MOTOR() : DM_MOTOR(DM_MOTOR_APP_ID, "DM_MOTOR") {
             }
 
             void cleanup() override {
@@ -539,6 +546,12 @@ namespace aim::ecat::task {
             void read() override;
 
             void init_value() override;
+        };
+
+        class DM_MOTOR_CANFD final : public DM_MOTOR {
+        public:
+            DM_MOTOR_CANFD() : DM_MOTOR(DM_MOTOR_CANFD_APP_ID, "DM_MOTOR_CANFD") {
+            }
         };
     }
 

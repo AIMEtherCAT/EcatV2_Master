@@ -6,8 +6,10 @@
 
 Connect your motor to any ``CAN`` port of your EtherCAT module.
 
-Note that a maximum of 3 motors in the same CAN network is suitable for a 1khz control frequency. If you connect more,
-please reduce the motor feedback or control frequency.
+* **Classic CAN Mode (sdowrite_task_type: 12)**:
+  Suitable for standard 1Mbps CAN. Note that a maximum of 3 motors in the same CAN network is suitable for a 1kHz control frequency. If you connect more, please reduce the motor feedback or control frequency.
+* **CAN FD Mode (sdowrite_task_type: 16)**:
+  Enables FDCAN with BRS (Bit Rate Switch) at 1Mbps nominal arbitration bitrate and 5Mbps data phase bitrate. In this mode, a single CAN network can comfortably support **6 to 8 motors** at a 1kHz control frequency without bus saturation. Ensure your motor is configured to CAN FD mode via DMTools and has a 120 Ohm terminating resistor at the bus end.
 
 > **Note:** all motors will be disabled before receiving any command.
 
