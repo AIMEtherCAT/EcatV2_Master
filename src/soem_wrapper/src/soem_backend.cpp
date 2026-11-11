@@ -53,6 +53,14 @@ namespace aim::ecat {
 
             sw_rev_ = atoi(sw_rev_str_); // NOLINT
 
+            std::string device_name = get_node()->get_device_name(ec_slave[index_].eep_id);
+            if (device_name.empty()) {
+                RCLCPP_ERROR(*get_cfg_logger(),
+                             "Slave idx=%d has unregistered eep_id (ProductCode)=%d! Registered devices: 3 (H750), 4 (H750 Large PDO), 5 (HPM6E80)",
+                             index_, ec_slave[index_].eep_id);
+                return 0;
+            }
+
             if (oldSn != 0) {
                 RCLCPP_INFO_THROTTLE(*get_cfg_logger(),
                                      *get_node()->get_clock(), 1500,
@@ -60,7 +68,7 @@ namespace aim::ecat {
                                      index_,
                                      sn_,
                                      ec_slave[index_].eep_id,
-                                     get_node()->get_device_name(ec_slave[index_].eep_id).c_str(),
+                                     device_name.c_str(),
                                      sw_rev_);
             } else {
                 RCLCPP_INFO(*get_cfg_logger(),
@@ -68,7 +76,7 @@ namespace aim::ecat {
                             index_,
                             sn_,
                             ec_slave[index_].eep_id,
-                            get_node()->get_device_name(ec_slave[index_].eep_id).c_str(),
+                            device_name.c_str(),
                             sw_rev_);
             }
 
@@ -132,7 +140,15 @@ namespace aim::ecat {
 
             is_ecat_conf_done_ = true;
             return 1;
+        } catch (const std::exception &e) {
+            RCLCPP_ERROR(*get_cfg_logger(),
+                         "Slave idx=%d (sn=%d, eepid=%d) init failed: %s",
+                         index_, sn_, ec_slave[index_].eep_id, e.what());
+            return 0;
         } catch (...) {
+            RCLCPP_ERROR(*get_cfg_logger(),
+                         "Slave idx=%d (sn=%d, eepid=%d) init failed with unknown exception",
+                         index_, sn_, ec_slave[index_].eep_id);
             return 0;
         }
     }
@@ -140,17 +156,18 @@ namespace aim::ecat {
     bool SlaveDevice::init_task_list() {
         std::lock_guard lock(mtx_);
 
-        if (!is_sw_rev_check_passed_) {
+        if (!is_sw_rev_check_passed_ || !is_ecat_conf_done_) {
             return false;
         }
 
-        // create arg buffer
-        arg_buf_len_ = get_field_as<uint16_t>(
-            *get_configuration_data(),
-            sn_,
-            "sdo_len");
-        arg_buf_.clear();
-        arg_buf_.resize(arg_buf_len_);
+        try {
+            // create arg buffer
+            arg_buf_len_ = get_field_as<uint16_t>(
+                *get_configuration_data(),
+                sn_,
+                "sdo_len");
+            arg_buf_.clear();
+            arg_buf_.resize(arg_buf_len_);
 
         int arg_buf_idx = 0;
         // create latency publisher for each module
@@ -274,6 +291,17 @@ namespace aim::ecat {
         is_conf_ros_done_ = true;
 
         return true;
+        } catch (const std::exception &e) {
+            RCLCPP_ERROR(*get_cfg_logger(),
+                         "Slave idx=%d (sn=%d, eepid=%d) init_task_list failed: %s",
+                         index_, sn_, ec_slave[index_].eep_id, e.what());
+            return false;
+        } catch (...) {
+            RCLCPP_ERROR(*get_cfg_logger(),
+                         "Slave idx=%d (sn=%d, eepid=%d) init_task_list failed with unknown exception",
+                         index_, sn_, ec_slave[index_].eep_id);
+            return false;
+        }
     }
 
     void SlaveDevice::transfer_to_slave() const {
