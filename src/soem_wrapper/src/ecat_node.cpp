@@ -465,6 +465,13 @@ namespace aim::ecat {
                                                         .slave_to_master_buf_len = 112,
                                                         .min_sw_rev = 8
                                                     });
+        register_device<device::AimUniversalModule>(device::AIM_VENDOR_ID, 5,
+                                                    "HPM6E80UniversalModule",
+                                                    device::AimModuleSpec{
+                                                        .master_to_slave_buf_len = 80,
+                                                        .slave_to_master_buf_len = 80,
+                                                        .min_sw_rev = 1
+                                                    });
 
         // third-party devices
         register_device<device::vendor::SBT908E>(device::vendor::SBT908E_VENDOR_ID,

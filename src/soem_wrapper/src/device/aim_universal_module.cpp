@@ -119,7 +119,15 @@ namespace aim::ecat::device {
 
             is_ecat_conf_done_ = true;
             return 1;
+        } catch (const std::exception &e) {
+            RCLCPP_ERROR(*get_cfg_logger(),
+                         "Slave idx=%d (sn=%d, eepid=%d) on_configure failed: %s",
+                         get_index(), sn_, get_product_code(), e.what());
+            return 0;
         } catch (...) {
+            RCLCPP_ERROR(*get_cfg_logger(),
+                         "Slave idx=%d (sn=%d, eepid=%d) on_configure failed with unknown exception",
+                         get_index(), sn_, get_product_code());
             return 0;
         }
     }
@@ -127,7 +135,7 @@ namespace aim::ecat::device {
     bool AimUniversalModule::on_setup(SetupContext &ctx) {
         std::lock_guard lock(mtx_);
 
-        if (!is_sw_rev_check_passed_) {
+        if (!is_sw_rev_check_passed_ || !is_ecat_conf_done_) {
             return false;
         }
 

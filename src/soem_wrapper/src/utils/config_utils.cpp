@@ -73,14 +73,25 @@ namespace aim::utils::config {
     }
 
     void ConfigurationParser::load_initial_value_from_config(const std::string &filepath) {
-        if (const YAML::Node root = YAML::LoadFile(filepath); root["slaves"] && root["slaves"].IsSequence()) {
-            for (YAML::Node slaves = root["slaves"]; auto &&slave: slaves) {
-                if (slave.IsMap()) {
-                    for (auto it = slave.begin(); it != slave.end(); ++it) {
-                        parse_map(it->first.as<std::string>(), it->second);
+        try {
+            const YAML::Node root = YAML::LoadFile(filepath);
+            if (root["slaves"] && root["slaves"].IsSequence()) {
+                for (YAML::Node slaves = root["slaves"]; auto &&slave: slaves) {
+                    if (slave.IsMap()) {
+                        for (auto it = slave.begin(); it != slave.end(); ++it) {
+                            parse_map(it->first.as<std::string>(), it->second);
+                        }
                     }
                 }
+            } else {
+                RCLCPP_WARN(*get_cfg_logger(),
+                            "Configuration file %s has no 'slaves' sequence key! Please check YAML format.",
+                            filepath.c_str());
             }
+        } catch (const std::exception &e) {
+            RCLCPP_ERROR(*get_cfg_logger(),
+                         "Failed to load configuration file %s: %s",
+                         filepath.c_str(), e.what());
         }
     }
 
