@@ -12,9 +12,6 @@ namespace aim::ecat::task {
     using namespace utils::config;
     using namespace lk_motor;
 
-    custom_msgs::msg::ReadLkMotor LK_MOTOR::custom_msgs_readlkmotor_shared_msg;
-    custom_msgs::msg::ReadLkMotorMulti LK_MOTOR::custom_msgs_readlkmotormulti_shared_msg;
-
     void LK_MOTOR::init_sdo(uint8_t *buf, int *offset, const uint16_t slave_id, const std::string &prefix) {
         is_broadcast_mode_ = get_field_as<uint8_t>(*get_configuration_data(),
                                                    fmt::format("{}sdowrite_control_type", prefix)) == 0x08;

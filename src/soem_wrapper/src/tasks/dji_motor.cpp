@@ -12,8 +12,6 @@ namespace aim::ecat::task {
     using namespace utils::config;
     using namespace dji_motor;
 
-    custom_msgs::msg::ReadDJIMotor DJI_MOTOR::custom_msgs_readdjimotor_shared_msg;
-
     void DJI_MOTOR::init_sdo(uint8_t *buf, int *offset, const uint16_t slave_id, const std::string &prefix) {
         auto [sdo_buf, sdo_len] = get_configuration_data()->build_buf(fmt::format("{}sdowrite_", prefix),
                                                                       {

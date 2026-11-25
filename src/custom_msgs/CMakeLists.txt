@@ -51,6 +51,13 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/WriteDDMotor.msg"
         "msg/ReadDDMotor.msg"
 
+        "msg/SBT908EChannel.msg"
+        "msg/ReadSBT908E.msg"
+        "srv/SBT908ECommand.srv"
+        "srv/SBT908ESetCalibrationParameters.srv"
+        "srv/SBT908EGainCalibration.srv"
+        "srv/SBT908ESensitivityCalibration.srv"
+
         DEPENDENCIES
         std_msgs
         geometry_msgs

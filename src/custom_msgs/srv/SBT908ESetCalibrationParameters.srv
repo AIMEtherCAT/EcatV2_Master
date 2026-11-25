@@ -1,0 +1,8 @@
+uint8 channel       # 1 - channel_count, 255 = all channels
+int32 unit          # Para1, 0 = none, 1 = g, 2 = kg, 3 = t, 4 = N
+int32 div           # Para2, 0 = 0.0001, 1 = 0.0002, 2 = 0.0005, 3 = 0.001, 4 = 0.002, 5 = 0.005, 6 = 0.01, 7 = 0.02,
+                    # 8 = 0.05, 9 = 0.1, 10 = 0.2, 11 = 0.5, 12 = 1, 13 = 2, 14 = 5, 15 = 10, 16 = 20, 17 = 50
+int32 full_range    # Para3, max weighing value, 0-8000000, e.g. 10 kg accurate to 1 g is 10000
+---
+bool success
+string message

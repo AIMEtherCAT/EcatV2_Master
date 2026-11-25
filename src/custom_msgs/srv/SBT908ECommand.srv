@@ -1,0 +1,4 @@
+uint8 channel   # 1 - channel_count, 255 = all channels
+---
+bool success
+string message

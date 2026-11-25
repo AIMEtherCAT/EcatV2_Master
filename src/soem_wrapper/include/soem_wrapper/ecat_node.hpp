@@ -6,29 +6,18 @@
 #define ETHERCAT_NODE_HPP
 
 #include "chrono"
+#include "mutex"
 #include "thread"
 #include "rclcpp/rclcpp.hpp"
+
+#include "soem_wrapper/device/device_registry.hpp"
+#include "soem_wrapper/sdo_worker.hpp"
 
 #ifndef GIT_HASH
 #define GIT_HASH "unknown"
 #endif
 
-namespace aim::ecat::task {
-    class TaskWrapper;
-}
-
 namespace aim::ecat {
-    // slave2master status enums
-    constexpr uint8_t SLAVE_INITIALIZING = 1;
-    constexpr uint8_t SLAVE_READY = 2;
-    constexpr uint8_t SLAVE_CONFIRM_READY = 3;
-
-    // master2slave status enums
-    constexpr uint8_t MASTER_REQUEST_REBOOT = 1;
-    constexpr uint8_t MASTER_SENDING_ARGUMENTS = 2;
-    constexpr uint8_t MASTER_READY = 3;
-
-
     class EthercatNode final : public rclcpp::Node {
     public:
         EthercatNode();
@@ -39,30 +28,36 @@ namespace aim::ecat {
 
         void on_shutdown();
 
-        std::string get_device_name(const uint32_t eep_id) {
-            return registered_module_names[eep_id];
+        [[nodiscard]] const device::DeviceRegistry &get_device_registry() const {
+            return device_registry_;
         }
 
-        int get_device_min_sw_rev_requirement(const uint32_t eep_id) {
-            return registered_module_sw_rev[eep_id];
-        }
-
-        uint16_t get_device_master_to_slave_buf_len(const uint32_t eep_id) {
-            return registered_module_buf_lens[eep_id].first;
-        }
-
-        uint16_t get_device_slave_to_master_buf_len(const uint32_t eep_id) {
-            return registered_module_buf_lens[eep_id].second;
+        /**
+         * global worker for blocking sdo operations at runtime, see SdoWorker
+         */
+        SdoWorker &get_sdo_worker() {
+            return sdo_worker_;
         }
 
     private:
         void register_components();
 
-        void register_module(uint32_t eep_id,
-                             const std::string &module_name,
-                             int master_to_slave_buf_len,
-                             int slave_to_master_buf_len,
-                             int min_sw_rev);
+        /**
+         * register a device implementation for the given vendor id and product code
+         * extra args are forwarded to the constructor of T after the DeviceInfo
+         */
+        template<typename T, typename... Args>
+        void register_device(const uint32_t vendor_id,
+                             const uint32_t product_code,
+                             const std::string &name,
+                             Args... args) {
+            device_registry_.add(vendor_id, product_code, name,
+                                 [=](const device::DeviceInfo &info) -> std::shared_ptr<device::SlaveDevice> {
+                                     return std::make_shared<T>(info, args...);
+                                 });
+        }
+
+        void do_shutdown();
 
         void datacycle_callback();
 
@@ -75,17 +70,16 @@ namespace aim::ecat {
         std::string non_rt_cpus_{};
         std::string config_file_{};
 
-        // m2s, s2m
-        std::unordered_map<uint32_t, std::pair<uint16_t, uint16_t> > registered_module_buf_lens{};
-        std::unordered_map<uint32_t, std::string> registered_module_names{};
-        std::unordered_map<uint32_t, int> registered_module_sw_rev{};
-        std::unordered_map<uint8_t, task::TaskWrapper *> app_registry{};
+        device::DeviceRegistry device_registry_{};
+        rclcpp::Clock data_clock_{};
 
+        std::once_flag shutdown_once_{};
         std::atomic<bool> running_{};
         std::atomic<bool> exiting_{};
         std::atomic<bool> exiting_reset_called_{};
         std::thread data_thread_{};
         std::thread checker_thread_{};
+        SdoWorker sdo_worker_{};
 
         int expectedWkc_{};
         std::atomic<int> wkc_{};

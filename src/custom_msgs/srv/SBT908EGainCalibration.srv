@@ -1,0 +1,5 @@
+uint8 channel   # 1 - channel_count, 255 = all channels
+int32 weight    # Para1, weight on the sensor, -8000000-8000000, e.g. 10 kg accurate to 1 g is 10000
+---
+bool success
+string message

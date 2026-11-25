@@ -12,8 +12,6 @@ namespace aim::ecat::task {
     using namespace utils::config;
     using namespace sbus_rc;
 
-    custom_msgs::msg::ReadSBUSRC SBUS_RC::custom_msgs_readsbusrc_shared_msg;
-
     void SBUS_RC::init_sdo(uint8_t * /* buf */, int * /* offset */, const uint16_t slave_id,
                            const std::string &prefix) {
         load_slave_info(slave_id, prefix);

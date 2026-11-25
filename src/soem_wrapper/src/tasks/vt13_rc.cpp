@@ -12,8 +12,6 @@ namespace aim::ecat::task {
     using namespace utils::config;
     using namespace vt13_rc;
 
-    custom_msgs::msg::ReadVT13RC VT13_RC::custom_msgs_readvt13rc_shared_msg;
-
     void VT13_RC::init_sdo(uint8_t * /*buf*/, int * /*offset*/, const uint16_t slave_id, const std::string &prefix) {
         load_slave_info(slave_id, prefix);
 

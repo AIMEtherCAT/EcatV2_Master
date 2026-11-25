@@ -12,8 +12,6 @@ namespace aim::ecat::task {
     using namespace utils::config;
     using namespace dbus_rc;
 
-    custom_msgs::msg::ReadDJIRC DBUS_RC::custom_msgs_readdjirc_shared_msg;
-
     void DBUS_RC::init_sdo(uint8_t * /*buf*/, int * /*offset*/, const uint16_t slave_id, const std::string &prefix) {
         load_slave_info(slave_id, prefix);
 

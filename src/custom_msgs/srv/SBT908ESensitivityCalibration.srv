@@ -1,0 +1,6 @@
+uint8 channel           # 1 - channel_count, 255 = all channels
+int32 sensitivity       # Para1, 0.1 mV/V - 7.8 mV/V without the decimal point, e.g. 2.0000 mV/V is 20000
+int32 sensor_range      # Para2, range of a single sensor, e.g. 10 kg accurate to 1 g is 10000
+---
+bool success
+string message
